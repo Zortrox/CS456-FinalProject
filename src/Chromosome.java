@@ -24,4 +24,8 @@ public class Chromosome {
 	public Chromosome cross(Chromosome other) {
 		return new Chromosome();
 	}
+
+	public int getSupplyMind() {
+		return m_supplymind;
+	}
 }
