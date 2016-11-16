@@ -7,7 +7,8 @@ import java.util.Random;
 
 public class Ant {
 	private Chromosome m_chromo;
-	private Point m_currPos;
+	private double m_currPosX;
+	private double m_currPosY;
 	private Point m_movePos = null;
 	private double m_score;
 	private Random rand = new Random();
@@ -17,7 +18,8 @@ public class Ant {
 	//create a new ant at position x, y
 	public Ant(int x, int y, int width, int height) {
 		m_chromo = new Chromosome();
-		m_currPos = new Point(x, y);
+		m_currPosX = x;
+		m_currPosY = y;
 		m_worldWidth = width;
 		m_worldHeight = height;
 	}
@@ -26,9 +28,14 @@ public class Ant {
 	//x, y starting position
 	public Ant(Chromosome chromo, int x, int y, int width, int height) {
 		m_chromo = new Chromosome(chromo.getGenes());
-		m_currPos = new Point(x, y);
+		m_currPosX = x;
+		m_currPosY = y;
 		m_worldWidth = width;
 		m_worldHeight = height;
+	}
+
+	public void draw(Graphics g) {
+		g.fillRect((int)m_currPosX, (int)m_currPosY, 2, 2);
 	}
 
 	//move to position x, y
@@ -38,17 +45,22 @@ public class Ant {
 
 	//perform action with current state
 	public void step() {
+		Point currPos = new Point((int)m_currPosX, (int)m_currPosY);
+		double dist;
+
 		//temp move conditions
-		if (m_movePos == null || m_movePos.equals(m_currPos)) {
-			m_movePos = new Point(rand.nextInt(), rand.nextInt());
+		if (m_movePos == null || (dist = currPos.distance(m_movePos)) < 2) {
+			m_movePos = new Point(rand.nextInt(m_worldWidth + 1), rand.nextInt(m_worldHeight + 1));
+			currPos = new Point((int)m_currPosX, (int)m_currPosY);
+			dist = currPos.distance(m_movePos);
 		}
 
 		//move towards position
-		int tempX = m_movePos.x - m_currPos.x;
-		int tempY = m_movePos.y - m_currPos.y;
-		double dist = m_currPos.distance(m_movePos);
-		m_currPos.x = (int) (tempX / dist + 0.5);
-		m_currPos.y = (int) (tempY / dist + 0.5);
+		double tempX = m_movePos.x - m_currPosX;
+		double tempY = m_movePos.y - m_currPosY;
+
+		m_currPosX = m_currPosX + tempX / dist;
+		m_currPosY = m_currPosY + tempY / dist;
 	}
 
 	public void cross(Ant other) {

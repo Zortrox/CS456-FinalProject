@@ -5,12 +5,16 @@
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.util.*;
 
 public class Simulation extends JPanel implements ActionListener {
 
 	private JFrame frame;
 	private JPanel controlPanel = new JPanel();
 	boolean running = true;
+	int gameWidth = 700;
+	int gameHeight = 700;
+	Colony col;
 
 	public static void main(String args[]){
 		new Simulation();
@@ -22,7 +26,7 @@ public class Simulation extends JPanel implements ActionListener {
 		frame.setTitle("Ant Colony Simulation");
 		frame.setVisible(true);
 		frame.setResizable(false);
-		frame.setSize(900, 700);
+		frame.setSize(gameWidth + 200, gameWidth);
 		frame.addWindowListener(new WindowAdapter() {
 			public void windowClosing(WindowEvent e) {
 				System.exit(0);
@@ -30,23 +34,32 @@ public class Simulation extends JPanel implements ActionListener {
 		});
 
 		JSplitPane pane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
-		pane.setDividerLocation(700);
+		pane.setDividerLocation(gameWidth);
 		pane.add(this);
 		pane.add(controlPanel);
 
 		frame.add(pane);
 
-		Colony col = new Colony(200, 200, 700, 700, 10, 0.25f);
+		col = new Colony(300, 300, gameWidth, gameHeight, 50, 0.25f);
 
 		while(running){
 			if (!col.step()) {
 				running = false;
 			}
+			paintImmediately(0, 0, gameWidth, gameHeight);
+
+			try {
+				Thread.sleep(10);
+			} catch (Exception ex) {
+				ex.printStackTrace();
+			}
 		}
 	}
 
 	public void paint(Graphics g) {
-		g.fillRect(0, 0, 700, 700);
+		g.setColor(new Color(226, 203, 183));
+		g.fillRect(0, 0, gameWidth, gameHeight);
+		col.draw(g);
 	}
 
 	@Override

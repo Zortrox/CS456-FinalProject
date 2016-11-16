@@ -19,7 +19,7 @@ public class Colony {
 
 	private int m_numAnts = 10;
 	private double m_mutatePercent = 0.25;
-	private ArrayList<Ant> m_ArrAnts = new ArrayList<>();
+	private ArrayList<Ant> m_arrAnts = new ArrayList<>();
 	private Point pos;
 	private int m_worldWidth;
 	private int m_worldHeight;
@@ -36,7 +36,7 @@ public class Colony {
 		m_mutatePercent = mutatePercent;
 
 		for (int i = 0; i < m_numAnts; i++) {
-			m_ArrAnts.add(new Ant(x, y, m_worldWidth, m_worldHeight));
+			m_arrAnts.add(new Ant(x, y, m_worldWidth, m_worldHeight));
 		}
 	}
 
@@ -50,19 +50,28 @@ public class Colony {
 		//keep going unless run out of supply
 		while (numSteps > 0 && m_supply > 0) {
 			for (int i = 0; i < m_numAnts; i++) {
-				m_ArrAnts.get(i).step();
+				m_arrAnts.get(i).step();
 			}
 
-			m_supply--;
+			//m_supply--;
 			numSteps--;
 		}
 
 		return (m_supply > 0);
 	}
 
+	public void draw(Graphics g) {
+		g.setColor(new Color(89, 48, 14));
+		g.fillOval(pos.x - 10, pos.y - 10, 20, 20);
+		g.setColor(Color.BLACK);
+		for (int i = 0; i < m_arrAnts.size(); i++) {
+			m_arrAnts.get(i).draw(g);
+		}
+	}
+
 	//sort then select, cross, & mutate ants
 	public void newGeneration() {
-		Collections.sort(m_ArrAnts, new AntComparator());
+		Collections.sort(m_arrAnts, new AntComparator());
 
 		int rem = m_numAnts % 3;
 
@@ -72,17 +81,17 @@ public class Colony {
 		//cross each selected ant with the next one down
 		int numCross = numSelect - 1;
 		for (int i = 0; i < numCross; i++) {
-			Ant child = new Ant(m_ArrAnts.get(i).getChromosome(), pos.x, pos.y, m_worldWidth, m_worldHeight);
-			child.cross(m_ArrAnts.get(numSelect + 1));
-			m_ArrAnts.set(numSelect + i, child);
+			Ant child = new Ant(m_arrAnts.get(i).getChromosome(), pos.x, pos.y, m_worldWidth, m_worldHeight);
+			child.cross(m_arrAnts.get(numSelect + 1));
+			m_arrAnts.set(numSelect + i, child);
 		}
 
 		//mutate rest of ants based on selected ants
 		int numMutate = m_numAnts - numSelect - numCross;
 		for (int i = 0; i < numMutate; i++) {
-			Ant child = new Ant(m_ArrAnts.get(i).getChromosome(), pos.x, pos.y, m_worldWidth, m_worldHeight);
+			Ant child = new Ant(m_arrAnts.get(i).getChromosome(), pos.x, pos.y, m_worldWidth, m_worldHeight);
 			child.mutate(m_mutatePercent);
-			m_ArrAnts.set(numSelect + numCross + i, child);
+			m_arrAnts.set(numSelect + numCross + i, child);
 		}
 	}
 }
