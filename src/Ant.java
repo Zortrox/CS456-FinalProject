@@ -7,7 +7,8 @@ import java.util.Random;
 
 public class Ant {
 	private Chromosome m_chromo;
-	private Point m_currPos;
+	private double m_currX = 0;
+	private double m_currY = 0;
 	private Point m_movePos = null;
 	private double m_score;
 	private Random rand = new Random();
@@ -17,7 +18,8 @@ public class Ant {
 	//create a new ant at position x, y
 	public Ant(int x, int y, int width, int height) {
 		m_chromo = new Chromosome();
-		m_currPos = new Point(x, y);
+		m_currX = x;
+		m_currY = y;
 		m_worldWidth = width;
 		m_worldHeight = height;
 	}
@@ -26,9 +28,14 @@ public class Ant {
 	//x, y starting position
 	public Ant(Chromosome chromo, int x, int y, int width, int height) {
 		m_chromo = new Chromosome(chromo.getGenes());
-		m_currPos = new Point(x, y);
+		m_currX = x;
+		m_currY = y;
 		m_worldWidth = width;
 		m_worldHeight = height;
+	}
+
+	public void draw(Graphics g) {
+		g.fillRect((int)m_currX, (int)m_currY, 2, 2);
 	}
 
 	//move to position x, y
@@ -38,17 +45,17 @@ public class Ant {
 
 	//perform action with current state
 	public void step() {
+		double dist;
+
 		//temp move conditions
-		if (m_movePos == null || m_movePos.equals(m_currPos)) {
-			m_movePos = new Point(rand.nextInt(), rand.nextInt());
+		if (m_movePos == null || (dist = m_movePos.distance(m_currX, m_currY)) < 2) {
+			m_movePos = new Point(rand.nextInt(m_worldWidth), rand.nextInt(m_worldHeight));
+			dist = m_movePos.distance(m_currX, m_currY);
 		}
 
 		//move towards position
-		int tempX = m_movePos.x - m_currPos.x;
-		int tempY = m_movePos.y - m_currPos.y;
-		double dist = m_currPos.distance(m_movePos);
-		m_currPos.x = (int) (tempX / dist + 0.5);
-		m_currPos.y = (int) (tempY / dist + 0.5);
+		m_currX = m_currX + (m_movePos.x - m_currX) / dist;
+		m_currY = m_currY + (m_movePos.y - m_currY) / dist;
 	}
 
 	public void cross(Ant other) {
