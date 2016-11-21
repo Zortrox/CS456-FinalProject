@@ -20,6 +20,7 @@ public class Colony {
 	private int m_numAnts = 10;
 	private double m_mutatePercent = 0.25;
 	private ArrayList<Ant> m_arrAnts = new ArrayList<>();
+	private ArrayList<Trail> m_arrTrails = new ArrayList<>();
 	private Point pos;
 	private int m_worldWidth;
 	private int m_worldHeight;
@@ -44,6 +45,12 @@ public class Colony {
 		g.setColor(new Color(112, 86, 52));
 		g.fillOval(pos.x - 10, pos.y - 10, 20, 20);
 
+		//https://docs.oracle.com/javase/tutorial/2d/geometry/strokeandfill.html
+		g.setColor(Color.WHITE);
+		for (int i = 0; i < m_arrTrails.size(); i++) {
+			m_arrTrails.get(i).draw(g);
+		}
+
 		g.setColor(Color.BLACK);
 		for (int i = 0; i < m_numAnts; i++) {
 			m_arrAnts.get(i).draw(g);
@@ -60,7 +67,16 @@ public class Colony {
 		//keep going unless run out of supply
 		while (numSteps > 0 && m_supply > 0) {
 			for (int i = 0; i < m_numAnts; i++) {
-				m_arrAnts.get(i).step();
+				Ant a = m_arrAnts.get(i);
+				Trail trail = null;
+				if ((trail = a.step()) != null) {
+					//add trail
+					m_arrTrails.add(trail);
+				}
+			}
+
+			for (int i = 0; i < m_arrTrails.size(); i++) {
+				m_arrTrails.get(i).step();
 			}
 
 			//m_supply--;
