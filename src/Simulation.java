@@ -56,12 +56,6 @@ public class Simulation extends JPanel implements ActionListener {
 		pane.setDividerLocation(gameWidth);
 		pane.setDividerSize(0);
 		
-		pane.add(this);
-		pane.add(controlPanel);
-		
-		pause.setActionCommand("pause");
-		pause.addActionListener(this);
-		
 		colonyText.setEditable(false);
 		previousColonyText.setEditable(false);
 		bestColonyText.setEditable(false);
@@ -74,6 +68,12 @@ public class Simulation extends JPanel implements ActionListener {
 		controlPanel.add(colonyScroll);
 		controlPanel.add(previousColonyScroll);
 		controlPanel.add(bestColonyScroll);
+		
+		pane.add(this);
+		pane.add(controlPanel);
+		
+		pause.setActionCommand("pause");
+		pause.addActionListener(this);
 		
 		frame.add(pane);
 
