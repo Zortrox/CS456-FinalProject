@@ -19,11 +19,11 @@ import javax.swing.JTextArea;
 
 public class Simulation extends JPanel implements ActionListener {
 
-	private JFrame frame;
+	private static JFrame frame;
 	private JPanel controlPanel = new JPanel();
 	private boolean running = true;
-	private int gameWidth = 670;
-	private int gameHeight = 670;
+	private static int gameWidth = 670;
+	private static int gameHeight = 670;
 	private Colony col;
 	private Colony bestColonly;
 	private int sleepSpeed = 10;
@@ -36,10 +36,6 @@ public class Simulation extends JPanel implements ActionListener {
 	JButton pause = new JButton("Pause");
 
 	public static void main(String args[]){
-		new Simulation();
-	}
-
-	public Simulation(){
 		//sets up the frame
 		frame = new JFrame();
 		frame.setTitle("Ant Colony Simulation");
@@ -55,7 +51,11 @@ public class Simulation extends JPanel implements ActionListener {
 		JSplitPane pane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
 		pane.setDividerLocation(gameWidth);
 		pane.setDividerSize(0);
-		
+
+		new Simulation();
+	}
+
+	public Simulation(){
 		colonyText.setEditable(false);
 		previousColonyText.setEditable(false);
 		bestColonyText.setEditable(false);
