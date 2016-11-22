@@ -18,6 +18,7 @@ public class Colony {
 		}
 	}
 
+	private int generation;
 	private int m_numAnts = 10;
 	private double m_mutatePercent = 0.25;
 	private ArrayList<Ant> m_arrAnts = new ArrayList<>();
@@ -28,9 +29,10 @@ public class Colony {
 	private int m_supply = 100;
 
 	//create a new colony at position x, y with world width and height
-	public Colony(int x, int y, int width, int height, int numAnts, double mutatePercent) {
+	public Colony(int x, int y, int width, int height, int numAnts, double mutatePercent, int gen) {
 		pos = new Point(x, y);
 
+		generation = gen;
 		m_worldWidth = width;
 		m_worldHeight = height;
 
