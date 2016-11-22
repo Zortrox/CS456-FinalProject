@@ -73,12 +73,17 @@ public class Simulation extends JPanel implements ActionListener {
 		
 		colonyText.append("Generation: " + generation + "\n");
 		colonyText.append("Total Ants: " + col.getNumAnts() + "\n");
-		colonyText.append("\nAnts:");
+		colonyText.append("\nAnts:\n\n");
 
 		ArrayList<Ant> ants = col.getAnts();
 		for(int i = 0; i < ants.size(); i++){
 			colonyText.append("Ant " + i + ":\n");
-			colonyText.append("    Frustration: " + ants.get(i).toString() + "\n");
+			colonyText.append("    Frustration: " + ants.get(i).getChromosome().getFrustration() + "\n");
+			colonyText.append("    Bravery: " + ants.get(i).getChromosome().getBravery() + "\n");
+			colonyText.append("    Scent Mind: " + ants.get(i).getChromosome().getScentMind() + "\n");
+			colonyText.append("    Source Mind: " + ants.get(i).getChromosome().getSourceMind() + "\n");
+			colonyText.append("    Stubbornness: " + ants.get(i).getChromosome().getStubbornness() + "\n");
+			colonyText.append("    Supply Mind: " + ants.get(i).getChromosome().getSupplyMind() + "\n\n");
 		}
 		
 		while(running){
