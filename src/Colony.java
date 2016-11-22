@@ -27,6 +27,18 @@ public class Colony {
 	private int m_worldWidth;
 	private int m_worldHeight;
 	private int m_supply = 100;
+	
+	public int getGen(){
+		return generation;
+	}
+	
+	public ArrayList<Ant> getAnts(){
+		return m_arrAnts;
+	}
+	
+	public int getNumAnts(){
+		return m_numAnts;
+	}
 
 	//create a new colony at position x, y with world width and height
 	public Colony(int x, int y, int width, int height, int numAnts, double mutatePercent, int gen) {
