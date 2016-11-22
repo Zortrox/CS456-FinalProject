@@ -6,6 +6,7 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.LinkedList;
 
 public class Colony {
 
@@ -20,7 +21,7 @@ public class Colony {
 	private int m_numAnts = 10;
 	private double m_mutatePercent = 0.25;
 	private ArrayList<Ant> m_arrAnts = new ArrayList<>();
-	private ArrayList<Trail> m_arrTrails = new ArrayList<>();
+	private LinkedList<Trail> m_arrTrails = new LinkedList<>();
 	private Point pos;
 	private int m_worldWidth;
 	private int m_worldHeight;
@@ -45,7 +46,6 @@ public class Colony {
 		g.setColor(new Color(112, 86, 52));
 		g.fillOval(pos.x - 10, pos.y - 10, 20, 20);
 
-		//https://docs.oracle.com/javase/tutorial/2d/geometry/strokeandfill.html
 		g.setColor(Color.WHITE);
 		for (int i = 0; i < m_arrTrails.size(); i++) {
 			m_arrTrails.get(i).draw(g);
@@ -76,7 +76,10 @@ public class Colony {
 			}
 
 			for (int i = 0; i < m_arrTrails.size(); i++) {
-				m_arrTrails.get(i).step();
+				Trail trail = m_arrTrails.get(i);
+				if (!trail.step()) {
+					m_arrTrails.remove(i);
+				}
 			}
 
 			//m_supply--;

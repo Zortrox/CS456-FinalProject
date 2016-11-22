@@ -21,18 +21,21 @@ public class Trail {
 	}
 
 	public void draw(Graphics g) {
-		if (m_endStrength > 0) {
-			g.drawLine(m_startPoint.x, m_startPoint.y, m_endPoint.x, m_endPoint.y);
-		}
+		g.drawLine(m_startPoint.x, m_startPoint.y, m_endPoint.x, m_endPoint.y);
 	}
 
-	public void step() {
-		m_startStrength -= 0.1f;
+	public boolean step() {
+		m_startStrength -= 0.5f;
 		if (m_ant == null) {
-			m_endStrength -= 0.1f;
+			m_endStrength -= 0.5f;
+			if (m_endStrength <= 0) {
+				return false;
+			}
 		} else {
 			m_endPoint = m_ant.getPosition();
 		}
+
+		return true;
 	}
 
 	public void end() {

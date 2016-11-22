@@ -11,10 +11,10 @@ public class Simulation extends JPanel implements ActionListener {
 
 	private JFrame frame;
 	private JPanel controlPanel = new JPanel();
-	boolean running = true;
-	int gameWidth = 700;
-	int gameHeight = 700;
-	Colony col;
+	private boolean running = true;
+	private int gameWidth = 670;
+	private int gameHeight = 670;
+	private Colony col;
 
 	public static void main(String args[]){
 		new Simulation();
@@ -26,7 +26,7 @@ public class Simulation extends JPanel implements ActionListener {
 		frame.setTitle("Ant Colony Simulation");
 		frame.setVisible(true);
 		frame.setResizable(false);
-		frame.setSize(gameWidth + 200, gameWidth);
+		frame.setSize(gameWidth + 200, gameHeight + 30);
 		frame.addWindowListener(new WindowAdapter() {
 			public void windowClosing(WindowEvent e) {
 				System.exit(0);
