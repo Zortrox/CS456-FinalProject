@@ -53,6 +53,6 @@ public class Trail {
 	}
 
 	public double getStrength(double x) {
-
+		return 0;
 	}
 }
