@@ -71,7 +71,7 @@ public class Colony {
 			for (int i = 0; i < m_numAnts; i++) {
 				Ant a = m_arrAnts.get(i);
 				Trail trail = null;
-				if ((trail = a.step()) != null) {
+				if ((trail = a.step(m_arrTrails)) != null) {
 					//add trail
 					m_arrTrails.add(trail);
 				}
