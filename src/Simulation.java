@@ -8,6 +8,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.util.ArrayList;
+
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -65,17 +67,19 @@ public class Simulation extends JPanel implements ActionListener {
 		controlPanel.add(new JButton("Start"));
 		controlPanel.add(colonyScroll);
 		
-		colonyText.append("Generation: " + generation + "\n");
-		colonyText.append("Total Ants: ");
-		
 		frame.add(pane);
 
 		col = new Colony(300, 300, gameWidth, gameHeight, 100, 0.25f, 0);
-
 		
-//		for(int i = 0;){
-//			
-//		}
+		colonyText.append("Generation: " + generation + "\n");
+		colonyText.append("Total Ants: " + col.getNumAnts() + "\n");
+		colonyText.append("\nAnts:");
+
+		ArrayList<Ant> ants = col.getAnts();
+		for(int i = 0; i < ants.size(); i++){
+			colonyText.append("Ant " + i + ":\n");
+			colonyText.append("    Frustration: " + ants.get(i).toString() + "\n");
+		}
 		
 		while(running){
 			if (!col.step()) {
