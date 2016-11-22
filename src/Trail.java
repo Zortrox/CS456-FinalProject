@@ -13,6 +13,7 @@ public class Trail {
 	private Ant m_ant;
 	private Point m_endPoint;
 	private Line2D m_line;
+	private static final double m_decay = 0.5;
 	private double m_startStrength;
 	private double m_endStrength;
 
@@ -30,9 +31,9 @@ public class Trail {
 	}
 
 	public boolean step() {
-		m_startStrength -= 0.5f;
+		m_startStrength -= m_decay;
 		if (m_ant == null) {
-			m_endStrength -= 0.5f;
+			m_endStrength -= m_decay;
 			if (m_endStrength <= 0) {
 				return false;
 			}
@@ -53,6 +54,6 @@ public class Trail {
 	}
 
 	public double getStrength(double x) {
-		return 0;
+		return m_endStrength - Math.abs(m_endStrength - x) * m_decay;
 	}
 }
