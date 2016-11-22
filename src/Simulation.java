@@ -30,6 +30,8 @@ public class Simulation extends JPanel implements ActionListener {
 	private boolean paused = false;
 	private int generation = 0;
 	private JTextArea colonyText = new JTextArea("Current Colony Info:\n", 10, 20);
+	private JTextArea previousColonyText = new JTextArea("Previous Colony Info:\n", 10, 20);
+	private JTextArea bestColonyText = new JTextArea("Best Colony Info:\n", 10, 20);
 	
 	JButton pause = new JButton("Pause");
 
@@ -61,30 +63,23 @@ public class Simulation extends JPanel implements ActionListener {
 		pause.addActionListener(this);
 		
 		colonyText.setEditable(false);
+		previousColonyText.setEditable(false);
+		bestColonyText.setEditable(false);
 		JScrollPane colonyScroll = new JScrollPane(colonyText);
+		JScrollPane previousColonyScroll = new JScrollPane(previousColonyText);
+		JScrollPane bestColonyScroll = new JScrollPane(bestColonyText);
 		
 		controlPanel.add(pause);
 		controlPanel.add(new JButton("Start"));
 		controlPanel.add(colonyScroll);
+		controlPanel.add(previousColonyScroll);
+		controlPanel.add(bestColonyScroll);
 		
 		frame.add(pane);
 
 		col = new Colony(300, 300, gameWidth, gameHeight, 100, 0.25f, 0);
 		
-		colonyText.append("Generation: " + generation + "\n");
-		colonyText.append("Total Ants: " + col.getNumAnts() + "\n");
-		colonyText.append("\nAnts:\n\n");
-
-		ArrayList<Ant> ants = col.getAnts();
-		for(int i = 0; i < ants.size(); i++){
-			colonyText.append("Ant " + i + ":\n");
-			colonyText.append("    Frustration: " + ants.get(i).getChromosome().getFrustration() + "\n");
-			colonyText.append("    Bravery: " + ants.get(i).getChromosome().getBravery() + "\n");
-			colonyText.append("    Scent Mind: " + ants.get(i).getChromosome().getScentMind() + "\n");
-			colonyText.append("    Source Mind: " + ants.get(i).getChromosome().getSourceMind() + "\n");
-			colonyText.append("    Stubbornness: " + ants.get(i).getChromosome().getStubbornness() + "\n");
-			colonyText.append("    Supply Mind: " + ants.get(i).getChromosome().getSupplyMind() + "\n\n");
-		}
+		colonyInfo(colonyText, col);
 		
 		while(running){
 			if (!col.step()) {
@@ -101,6 +96,23 @@ public class Simulation extends JPanel implements ActionListener {
 			} catch (Exception ex) {
 				ex.printStackTrace();
 			}
+		}
+	}
+	
+	public void colonyInfo(JTextArea colonyText, Colony col){
+		colonyText.append("Generation: " + col.getGen() + "\n");
+		colonyText.append("Total Ants: " + col.getNumAnts() + "\n");
+		colonyText.append("\nAnts:\n\n");
+
+		ArrayList<Ant> ants = col.getAnts();
+		for(int i = 0; i < ants.size(); i++){
+			colonyText.append("Ant " + i + ":\n");
+			colonyText.append("    Frustration: " + ants.get(i).getChromosome().getFrustration() + "\n");
+			colonyText.append("    Bravery: " + ants.get(i).getChromosome().getBravery() + "\n");
+			colonyText.append("    Scent Mind: " + ants.get(i).getChromosome().getScentMind() + "\n");
+			colonyText.append("    Source Mind: " + ants.get(i).getChromosome().getSourceMind() + "\n");
+			colonyText.append("    Stubbornness: " + ants.get(i).getChromosome().getStubbornness() + "\n");
+			colonyText.append("    Supply Mind: " + ants.get(i).getChromosome().getSupplyMind() + "\n\n");
 		}
 	}
 
