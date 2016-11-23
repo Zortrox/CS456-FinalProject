@@ -18,8 +18,6 @@ public class Ant {
 	private Random rand = new Random();
 	private int m_worldWidth;
 	private int m_worldHeight;
-	private Trail m_trail = null;
-	private Rectangle m_bounds = new Rectangle(5, 5);
 
 	//create a new ant at position x, y
 	public Ant(int x, int y, int width, int height) {
@@ -50,41 +48,55 @@ public class Ant {
 	}
 
 	//perform action with current state
-	public Trail step(LinkedList<Trail> arrTrails) {
+	public void step(Scent[][] arrScents, long steps) {
 		double dist;
-		Trail trail = null;
+
+		int prevX = (int) m_currX;
+		int prevY = (int) m_currY;
+		if (prevX >= 0 && prevX < m_worldWidth && prevY >= 0 && prevY < m_worldHeight) {
+			arrScents[prevX][prevY].addStrength(steps);
+		}
 
 		//temp move conditions
 		if (m_movePos == null || (dist = m_movePos.distance(m_currX, m_currY)) < 2) {
 			m_movePos = new Point(rand.nextInt(m_worldWidth), rand.nextInt(m_worldHeight));
 			dist = m_movePos.distance(m_currX, m_currY);
-
-			if (m_trail != null) m_trail.end();
-			trail = m_trail = new Trail((int)m_currX, (int)m_currY, this);
 		}
 
 		//move towards position
-		m_currX = m_currX + (m_movePos.x - m_currX) / dist;
-		m_currY = m_currY + (m_movePos.y - m_currY) / dist;
+		double xDisp = (m_movePos.x - m_currX) / dist;
+		double yDisp = (m_movePos.y - m_currY) / dist;
+		m_currX = m_currX + xDisp;
+		m_currY = m_currY + yDisp;
 
-		m_bounds.setLocation((int)m_currX, (int)m_currY);
-		for (int i = 0; i < arrTrails.size(); i++) {
-			Trail t = arrTrails.get(i);
-			Line2D l = t.getLine();
-			if (l.intersects(m_bounds) && !t.equals(m_trail)) {
-				if (t.getStrength(m_currX) > m_chromo.getBravery() - 100) {
-					Point2D p2 = t.getLine().getP2();
-					if (Math.abs(m_movePos.x - p2.getX()) > 1 && Math.abs(m_movePos.y - p2.getY()) > 1) {
-						m_movePos = t.getEndPoint();
-						if (m_trail != null) m_trail.end();
-						trail = m_trail = new Trail((int) m_currX, (int) m_currY, this);
-					}
-				}
+		double angle = Math.atan2(-yDisp, xDisp);
+		int sX1 = (int)(m_currX + 3 * Math.cos(angle - 0.1963));	//PI / 16
+		int sY1 = (int)(m_currY + 3 * Math.sin(angle - 0.1963));
+		int sX2 = (int)(m_currX + 3 * Math.cos(angle + 0.1963));
+		int sY2 = (int)(m_currY + 3 * Math.sin(angle + 0.1963));
+
+		//if 2 scents in front of ant are grater than its bravery
+		//move towards the stronger one
+		Scent scent1 = null;
+		Scent scent2 = null;
+		if (sX1 >= 0 && sX1 < m_worldWidth && sY1 >= 0 && sY1 < m_worldHeight && arrScents[sX1][sY1].getStrength(steps) > m_chromo.getBravery()) {
+			scent1 = arrScents[sX1][sY1];
+		}
+		if (sX2 >= 0 && sX2 < m_worldWidth && sY2 >= 0 && sY2 < m_worldHeight && arrScents[sX2][sY2].getStrength(steps) > m_chromo.getBravery()) {
+			scent2 = arrScents[sX2][sY2];
+		}
+		if (scent1 != null && scent2 != null) {
+			if (scent1.getStrength(steps) > scent2.getStrength(steps)) {
+				m_movePos.setLocation(sX1, sY1);
+			} else {
+				m_movePos.setLocation(sX2, sY2);
 			}
-
+		} else if (scent1 != null) {
+			m_movePos.setLocation(sX1, sY1);
+		} else if (scent2 != null){
+			m_movePos.setLocation(sX2, sY2);
 		}
 
-		return trail;
 	}
 
 	public void cross(Ant other) {

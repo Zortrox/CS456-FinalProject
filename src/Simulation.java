@@ -104,7 +104,7 @@ public class Simulation {
 		frame.add(pane);
 		frame.setVisible(true);
 
-		col = new Colony(300, 300, gameWidth, gameHeight, 3, 0.25f, 0);
+		col = new Colony(300, 300, gameWidth, gameHeight, 100, 0.25f, 0);
 		
 		colonyInfo(colonyText, col);
 

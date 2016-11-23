@@ -22,11 +22,13 @@ public class Colony {
 	private int m_numAnts = 10;
 	private double m_mutatePercent = 0.25;
 	private ArrayList<Ant> m_arrAnts = new ArrayList<>();
-	private LinkedList<Trail> m_arrTrails = new LinkedList<>();
+	//private LinkedList<Trail> m_arrTrails = new LinkedList<>();
+	private Scent[][] m_arrScents;
 	private Point pos;
 	private int m_worldWidth;
 	private int m_worldHeight;
 	private int m_supply = 100;
+	private long m_totalSteps = 0;
 	
 	public int getGen(){
 		return generation;
@@ -54,15 +56,23 @@ public class Colony {
 		for (int i = 0; i < m_numAnts; i++) {
 			m_arrAnts.add(new Ant(x, y, m_worldWidth, m_worldHeight));
 		}
+
+		m_arrScents = new Scent[m_worldWidth][m_worldHeight];
+		for (int i = 0; i < m_worldWidth; i++) {
+			for (int j = 0; j < m_worldHeight; j++) {
+				m_arrScents[i][j] = new Scent(i, j);
+			}
+		}
 	}
 
 	public void draw(Graphics g) {
 		g.setColor(new Color(112, 86, 52));
 		g.fillOval(pos.x - 10, pos.y - 10, 20, 20);
 
-		g.setColor(Color.WHITE);
-		for (int i = 0; i < m_arrTrails.size(); i++) {
-			m_arrTrails.get(i).draw(g);
+		for (int i = 0; i < m_worldWidth; i++) {
+			for (int j = 0; j < m_worldHeight; j++) {
+				m_arrScents[i][j].draw(g, m_totalSteps);
+			}
 		}
 
 		g.setColor(Color.BLACK);
@@ -80,20 +90,11 @@ public class Colony {
 	public boolean step(int numSteps) {
 		//keep going unless run out of supply
 		while (numSteps > 0 && m_supply > 0) {
+			m_totalSteps++;
+
 			for (int i = 0; i < m_numAnts; i++) {
 				Ant a = m_arrAnts.get(i);
-				Trail trail = null;
-				if ((trail = a.step(m_arrTrails)) != null) {
-					//add trail
-					m_arrTrails.add(trail);
-				}
-			}
-
-			for (int i = 0; i < m_arrTrails.size(); i++) {
-				Trail trail = m_arrTrails.get(i);
-				if (!trail.step()) {
-					m_arrTrails.remove(i);
-				}
+				a.step(m_arrScents, m_totalSteps);
 			}
 
 			//m_supply--;
