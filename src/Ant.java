@@ -4,6 +4,7 @@
 
 import java.awt.*;
 import java.awt.geom.Line2D;
+import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.LinkedList;
 import java.util.Random;
@@ -18,7 +19,7 @@ public class Ant {
 	private int m_worldWidth;
 	private int m_worldHeight;
 	private Trail m_trail = null;
-	Rectangle m_bounds = new Rectangle(2, 2);
+	private Rectangle m_bounds = new Rectangle(5, 5);
 
 	//create a new ant at position x, y
 	public Ant(int x, int y, int width, int height) {
@@ -70,8 +71,15 @@ public class Ant {
 		for (int i = 0; i < arrTrails.size(); i++) {
 			Trail t = arrTrails.get(i);
 			Line2D l = t.getLine();
-			if (l.intersects(m_bounds)) {
-				t.getStrength(m_currX);
+			if (l.intersects(m_bounds) && !t.equals(m_trail)) {
+				if (t.getStrength(m_currX) > m_chromo.getBravery() - 100) {
+					Point2D p2 = t.getLine().getP2();
+					if (Math.abs(m_movePos.x - p2.getX()) > 1 && Math.abs(m_movePos.y - p2.getY()) > 1) {
+						m_movePos = t.getEndPoint();
+						if (m_trail != null) m_trail.end();
+						trail = m_trail = new Trail((int) m_currX, (int) m_currY, this);
+					}
+				}
 			}
 
 		}

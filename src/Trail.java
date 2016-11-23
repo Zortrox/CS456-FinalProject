@@ -56,4 +56,8 @@ public class Trail {
 	public double getStrength(double x) {
 		return m_endStrength - Math.abs(m_endStrength - x) * m_decay;
 	}
+
+	public Point getEndPoint() {
+		return m_endPoint;
+	}
 }

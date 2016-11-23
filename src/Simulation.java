@@ -17,29 +17,48 @@ import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
 
-public class Simulation extends JPanel implements ActionListener {
-
-	private static JFrame frame;
-	private JPanel controlPanel = new JPanel();
+public class Simulation {
 	private boolean running = true;
-	private static int gameWidth = 670;
-	private static int gameHeight = 670;
+	private int gameWidth = 670;
+	private int gameHeight = 670;
 	private Colony col;
-	private Colony bestColonly;
+	private Colony bestColony;
 	private int sleepSpeed = 10;
 	private boolean paused = false;
 	private int generation = 0;
-	private JTextArea colonyText = new JTextArea("Current Colony Info:\n", 10, 20);
-	private JTextArea previousColonyText = new JTextArea("Previous Colony Info:\n", 10, 20);
-	private JTextArea bestColonyText = new JTextArea("Best Colony Info:\n", 10, 20);
-	
-	JButton pause = new JButton("Pause");
+
+	private JButton pause = new JButton("Pause");
+
+	private class DrawArea extends JPanel implements ActionListener {
+		public void paint (Graphics g) {
+			g.setColor(new Color(226, 203, 183));
+			g.fillRect(0, 0, gameWidth, gameHeight);
+			col.draw(g);
+		}
+
+		@Override
+		public void actionPerformed(ActionEvent a) {
+			if(a.getActionCommand().equals("pause")){
+				if(!paused){
+					paused = true;
+					pause.setText("Resume");
+				}
+				else{
+					paused = false;
+					pause.setText("Pause");
+				}
+			}
+		}
+	}
 
 	public static void main(String args[]){
+		new Simulation();
+	}
+
+	public Simulation(){
 		//sets up the frame
-		frame = new JFrame();
+		JFrame frame = new JFrame();
 		frame.setTitle("Ant Colony Simulation");
-		frame.setVisible(true);
 		frame.setResizable(false);
 		frame.setSize(gameWidth + 250, gameHeight + 30);
 		frame.addWindowListener(new WindowAdapter() {
@@ -52,40 +71,48 @@ public class Simulation extends JPanel implements ActionListener {
 		pane.setDividerLocation(gameWidth);
 		pane.setDividerSize(0);
 
-		new Simulation();
-	}
+		//simulation area
+		DrawArea drawArea = new DrawArea();
+		pane.add(drawArea);
 
-	public Simulation(){
-		colonyText.setEditable(false);
-		previousColonyText.setEditable(false);
-		bestColonyText.setEditable(false);
-		JScrollPane colonyScroll = new JScrollPane(colonyText);
-		JScrollPane previousColonyScroll = new JScrollPane(previousColonyText);
-		JScrollPane bestColonyScroll = new JScrollPane(bestColonyText);
-		
+		//controls
+		JPanel controlPanel = new JPanel();
+
+		pause.setActionCommand("pause");
+		pause.addActionListener(drawArea);
 		controlPanel.add(pause);
+
 		controlPanel.add(new JButton("Start"));
+
+		JTextArea colonyText = new JTextArea("Current Colony Info:\n", 10, 20);
+		colonyText.setEditable(false);
+		JScrollPane colonyScroll = new JScrollPane(colonyText);
 		controlPanel.add(colonyScroll);
+
+		JTextArea previousColonyText = new JTextArea("Previous Colony Info:\n", 10, 20);
+		previousColonyText.setEditable(false);
+		JScrollPane previousColonyScroll = new JScrollPane(previousColonyText);
 		controlPanel.add(previousColonyScroll);
+
+		JTextArea bestColonyText = new JTextArea("Best Colony Info:\n", 10, 20);
+		bestColonyText.setEditable(false);
+		JScrollPane bestColonyScroll = new JScrollPane(bestColonyText);
 		controlPanel.add(bestColonyScroll);
-		
-		pane.add(this);
+
 		pane.add(controlPanel);
 		
-		pause.setActionCommand("pause");
-		pause.addActionListener(this);
-		
 		frame.add(pane);
+		frame.setVisible(true);
 
-		col = new Colony(300, 300, gameWidth, gameHeight, 100, 0.25f, 0);
+		col = new Colony(300, 300, gameWidth, gameHeight, 3, 0.25f, 0);
 		
 		colonyInfo(colonyText, col);
-		
+
 		while(running){
 			if (!col.step()) {
 				running = false;
 			}
-			paintImmediately(0, 0, gameWidth, gameHeight);
+			drawArea.paintImmediately(0, 0, gameWidth, gameHeight);
 
 			try {
 				while(paused){
@@ -99,7 +126,7 @@ public class Simulation extends JPanel implements ActionListener {
 		}
 	}
 	
-	public void colonyInfo(JTextArea colonyText, Colony col){
+	public static void colonyInfo(JTextArea colonyText, Colony col) {
 		colonyText.append("Generation: " + col.getGen() + "\n");
 		colonyText.append("Total Ants: " + col.getNumAnts() + "\n");
 		colonyText.append("\nAnts:\n\n");
@@ -113,26 +140,6 @@ public class Simulation extends JPanel implements ActionListener {
 			colonyText.append("    Source Mind: " + ants.get(i).getChromosome().getSourceMind() + "\n");
 			colonyText.append("    Stubbornness: " + ants.get(i).getChromosome().getStubbornness() + "\n");
 			colonyText.append("    Supply Mind: " + ants.get(i).getChromosome().getSupplyMind() + "\n\n");
-		}
-	}
-
-	public void paint(Graphics g) {
-		g.setColor(new Color(226, 203, 183));
-		g.fillRect(0, 0, gameWidth, gameHeight);
-		col.draw(g);
-	}
-
-	@Override
-	public void actionPerformed(ActionEvent a) {
-		if(a.getActionCommand().equals("pause")){
-			if(!paused){
-				paused = true;
-				pause.setText("Resume");
-			}
-			else{
-				paused = false;
-				pause.setText("Pause");
-			}
 		}
 	}
 }
