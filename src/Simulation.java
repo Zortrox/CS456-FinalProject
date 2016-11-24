@@ -8,8 +8,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
-
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -21,11 +22,12 @@ public class Simulation {
 	private boolean running = true;
 	private int gameWidth = 670;
 	private int gameHeight = 670;
-	private Colony col;
+	private Colony col = new Colony(300, 300, gameWidth, gameHeight, 20, 0.25f, 0);
 	private Colony bestColony;
 	private int sleepSpeed = 10;
 	private boolean paused = false;
 	private int generation = 0;
+	private JTextArea bestColonyText;
 
 	private JButton pause = new JButton("Pause");
 
@@ -60,9 +62,29 @@ public class Simulation {
 		JFrame frame = new JFrame();
 		frame.setTitle("Ant Colony Simulation");
 		frame.setResizable(false);
-		frame.setSize(gameWidth + 250, gameHeight + 30);
+		frame.setSize(gameWidth + 260, gameHeight + 30);
 		frame.addWindowListener(new WindowAdapter() {
 			public void windowClosing(WindowEvent e) {
+				if(bestColony != null){
+					try {
+						FileWriter fw = new FileWriter("Best Colony.txt");
+						
+						ArrayList<Ant> ants = col.getAnts();
+						for(int i = 0; i < ants.size(); i++){
+							fw.write("Ant " + i + ":\n");
+							fw.write("    Frustration: " + ants.get(i).getChromosome().getFrustration() + "\n");
+							fw.write("    Bravery: " + ants.get(i).getChromosome().getBravery() + "\n");
+							fw.write("    Scent Mind: " + ants.get(i).getChromosome().getScentMind() + "\n");
+							fw.write("    Source Mind: " + ants.get(i).getChromosome().getSourceMind() + "\n");
+							fw.write("    Stubbornness: " + ants.get(i).getChromosome().getStubbornness() + "\n");
+							fw.write("    Supply Mind: " + ants.get(i).getChromosome().getSupplyMind() + "\n\n");
+						}
+						
+						fw.close();
+
+					} catch (IOException e1) {e1.printStackTrace();}
+				}
+				
 				System.exit(0);
 			}
 		});
@@ -94,7 +116,7 @@ public class Simulation {
 		JScrollPane previousColonyScroll = new JScrollPane(previousColonyText);
 		controlPanel.add(previousColonyScroll);
 
-		JTextArea bestColonyText = new JTextArea("Best Colony Info:\n", 10, 20);
+		bestColonyText = new JTextArea("Best Colony Info:\n", 10, 20);
 		bestColonyText.setEditable(false);
 		JScrollPane bestColonyScroll = new JScrollPane(bestColonyText);
 		controlPanel.add(bestColonyScroll);
@@ -103,8 +125,6 @@ public class Simulation {
 		
 		frame.add(pane);
 		frame.setVisible(true);
-
-		col = new Colony(300, 300, gameWidth, gameHeight, 100, 0.25f, 0);
 		
 		colonyInfo(colonyText, col);
 
