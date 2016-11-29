@@ -90,6 +90,7 @@ public class Ant {
 			//m_angle += 0.51f;
 		}
 		m_angle = Math.atan2(yDisp, xDisp);
+		m_angle = m_angle % (2 * 3.1419f);
 
 		int sX1 = (int)(m_currX + 2 * Math.cos(m_angle - 0.1963));	//PI / 16
 		int sY1 = (int)(m_currY + 2 * Math.sin(m_angle - 0.1963));
