@@ -49,6 +49,7 @@ public class Ant {
 
 	public void draw(Graphics g) {
 		g.fillRect((int)m_currX, (int)m_currY, 2, 2);
+		g.drawLine((int)m_currX, (int)m_currY, (int)(m_currX + 4*Math.cos(m_angle)), (int)(m_currY + 4*Math.sin(m_angle)));
 	}
 
 	//move to position x, y
@@ -85,21 +86,22 @@ public class Ant {
 
 		double cross = Math.cos(m_angle) * yDisp - Math.sin(m_angle) * xDisp;
 		if (cross < 0) {
-			//m_angle -= 0.51f;
+			m_angle -= 0.1f;
 		} else if (cross > 0) {
-			//m_angle += 0.51f;
+			m_angle += 0.1f;
 		}
-		m_angle = Math.atan2(yDisp, xDisp);
-		m_angle = m_angle % (2 * 3.1419f);
+		//m_angle = Math.atan2(yDisp, xDisp);
 
-		int sX1 = (int)(m_currX + 2 * Math.cos(m_angle - 0.1963));	//PI / 16
-		int sY1 = (int)(m_currY + 2 * Math.sin(m_angle - 0.1963));
-		int sX2 = (int)(m_currX + 2 * Math.cos(m_angle));
-		int sY2 = (int)(m_currY + 2 * Math.sin(m_angle));
-		int sX3 = (int)(m_currX + 2 * Math.cos(m_angle + 0.1963));
-		int sY3 = (int)(m_currY + 2 * Math.sin(m_angle + 0.1963));
+		int antennaeDist = 2;
+		double antennaeAngle = 0.2;
+		int sX1 = (int)(m_currX + antennaeDist * Math.cos(m_angle - antennaeAngle));
+		int sY1 = (int)(m_currY + antennaeDist * Math.sin(m_angle - antennaeAngle));
+		int sX2 = (int)(m_currX + antennaeDist * Math.cos(m_angle));
+		int sY2 = (int)(m_currY + antennaeDist * Math.sin(m_angle));
+		int sX3 = (int)(m_currX + antennaeDist * Math.cos(m_angle + antennaeAngle));
+		int sY3 = (int)(m_currY + antennaeDist * Math.sin(m_angle + antennaeAngle));
 
-		//if 3 scents in front of ant are grater than its bravery
+		//if 3 scents in front of ant are greater than its bravery
 		//move towards the strongest one
 		Scent scent1 = null;
 		Scent scent2 = null;
@@ -132,18 +134,21 @@ public class Ant {
 			} else {
 				m_movePos.setLocation(sX1, sY1);
 			}
+			m_followingScent = true;
 		} else if (scent3 != null && scent2 != null) {
 			if (scent2.getStrength(steps) >= scent3.getStrength(steps)) {
 				m_movePos.setLocation(sX2, sY2);
 			} else {
 				m_movePos.setLocation(sX3, sY3);
 			}
+			m_followingScent = true;
 		} else if (scent1 != null && scent3 != null) {
 			if (scent1.getStrength(steps) >= scent3.getStrength(steps)) {
 				m_movePos.setLocation(sX1, sY1);
 			} else {
 				m_movePos.setLocation(sX3, sY3);
 			}
+			m_followingScent = true;
 		} else if (scent1 != null) {
 			m_movePos.setLocation(sX1, sY1);
 			m_followingScent = true;
@@ -181,7 +186,15 @@ public class Ant {
 			}
 			if (nearbyScents.size() > 0) {
 				Collections.sort(nearbyScents, new ScentComparator());
-				m_movePos.setLocation(nearbyScents.get(0).getX(), nearbyScents.get(0).getY());
+				int scentX = nearbyScents.get(0).getX();
+				int scentY = nearbyScents.get(0).getY();
+				if (Math.abs((Math.atan2(scentY, scentX) % (2 * 3.14159)) - (m_angle % (2 * 3.14159))) < 0.5f && nearbyScents.size() > 1) {
+					m_movePos.setLocation(nearbyScents.get(1).getX(), nearbyScents.get(1).getY());
+				} else {
+					m_movePos.setLocation(scentX, scentY);
+				}
+			} else {
+				m_followingScent = false;
 			}
 		} else {
 			m_followingScent = false;
@@ -209,5 +222,41 @@ public class Ant {
 
 	public Point getPosition() {
 		return new Point((int)m_currX, (int)m_currY);
+	}
+
+	public ArrayList<Scent> getScentsInLine(Scent[][] arrScents, int dist, double angle) {
+		ArrayList<Scent> lineScents = new ArrayList<>();
+
+		int x = m_currX;
+		int y = m_currY;
+		int w = (int)(dist * Math.cos(angle) - x);
+		int h = (int)(dist * Math.sin(angle) - y);
+		int dx1 = 0, dy1 = 0, dx2 = 0, dy2 = 0 ;
+		if (w < 0) dx1 = -1; else if (w > 0) dx1 = 1;
+		if (h < 0) dy1 = -1; else if (h > 0) dy1 = 1;
+		if (w < 0) dx2 = -1; else if (w > 0) dx2 = 1;
+		int longest = Math.abs(w) ;
+		int shortest = Math.abs(h) ;
+		if (longest <= shortest) {
+			longest = Math.abs(h) ;
+			shortest = Math.abs(w) ;
+			if (h < 0) dy2 = -1; else if (h > 0) dy2 = 1;
+			dx2 = 0 ;
+		}
+		int numerator = longest >> 1 ;
+		for (int i=0;i<=longest;i++) {
+			lineScents.add(arrScents[x][y]);
+			numerator += shortest ;
+			if (!(numerator<longest)) {
+				numerator -= longest ;
+				x += dx1 ;
+				y += dy1 ;
+			} else {
+				x += dx2 ;
+				y += dy2 ;
+			}
+		}
+
+		return lineScents;
 	}
 }
