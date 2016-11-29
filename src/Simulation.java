@@ -22,7 +22,7 @@ public class Simulation {
 	private boolean running = true;
 	private int gameWidth = 670;
 	private int gameHeight = 670;
-	private Colony col = new Colony(300, 300, gameWidth, gameHeight, 5, 0.25f, 0);
+	private Colony col = new Colony(300, 300, gameWidth, gameHeight, 100, 0.25f, 0);
 	private Colony bestColony;
 	private int sleepSpeed = 10;
 	private boolean paused = false;
@@ -71,13 +71,9 @@ public class Simulation {
 						
 						ArrayList<Ant> ants = col.getAnts();
 						for(int i = 0; i < ants.size(); i++){
-							fw.write("Ant " + i + ":\n");
-							fw.write("    Frustration: " + ants.get(i).getChromosome().getFrustration() + "\n");
-							fw.write("    Bravery: " + ants.get(i).getChromosome().getBravery() + "\n");
-							fw.write("    Scent Mind: " + ants.get(i).getChromosome().getScentMind() + "\n");
-							fw.write("    Source Mind: " + ants.get(i).getChromosome().getSourceMind() + "\n");
-							fw.write("    Stubbornness: " + ants.get(i).getChromosome().getStubbornness() + "\n");
-							fw.write("    Supply Mind: " + ants.get(i).getChromosome().getSupplyMind() + "\n\n");
+							Chromosome c = ants.get(i).getChromosome();
+			
+							fw.write(c.getBravery() + " " + c.getFrustration() + " " + c.getScentMind() + " " + c.getSourceMind() + " " + c.getStubbornness() + " " + c.getSupplyMind() + "\n");
 						}
 						
 						fw.close();

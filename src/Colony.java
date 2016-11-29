@@ -2,11 +2,13 @@
  * Created by Zortrox on 11/8/2016.
  */
 
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.Point;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.LinkedList;
+import java.util.Random;
 
 public class Colony {
 
@@ -29,6 +31,7 @@ public class Colony {
 	private int m_worldHeight;
 	private int m_supply = 100;
 	private long m_totalSteps = 0;
+	private boolean[][] food;
 	
 	public int getGen(){
 		return generation;
@@ -63,6 +66,65 @@ public class Colony {
 				m_arrScents[i][j] = new Scent(i, j);
 			}
 		}
+		
+		generateFood(m_numAnts);
+	}
+	
+	private void generateFood(int foodCnt){
+		food = new boolean[m_worldWidth][m_worldHeight];
+		
+		int remaining = foodCnt;
+		
+		Random r = new Random();
+		
+		int sources = r.nextInt(foodCnt / 2) + 1;
+		
+		while(remaining > 0){
+			int amount = r.nextInt(foodCnt / sources) + 1;
+			
+			if(remaining < amount){
+				amount = remaining;
+			}
+			
+			int xIndex = r.nextInt(m_worldWidth);
+			int yIndex = r.nextInt(m_worldHeight);			
+			
+			int dir = 0;
+			
+			remaining -= amount;
+			
+			food[xIndex][yIndex] = true;
+			amount--;
+			
+			while(amount > 0){
+				xIndex += dir == 1 ? 1 : dir == 3 ? -1 : 0;
+				yIndex += dir == 0 ? -1 : dir == 2 ? 1 : 0;
+				
+				if(xIndex < 0 || xIndex >= food.length || yIndex < 0 || yIndex > food[xIndex].length){
+					remaining += amount;
+					break;
+				}
+				
+				food[xIndex][yIndex] = true;
+				amount--;
+				
+				if(dir == 0 && food[xIndex + 1][yIndex] == false){
+					dir = 1;
+				}
+				
+				else if(dir == 1 && food[xIndex][yIndex + 1] == false){
+					dir = 2;
+				}
+				
+				else if(dir == 2 && food[xIndex - 1][yIndex] == false){
+					dir = 3;
+				}
+				
+				else if(dir == 3 && food[xIndex][yIndex - 1] == false){
+					dir = 0;
+				}
+			}
+		}
 	}
 
 	public void draw(Graphics g) {
@@ -72,6 +134,15 @@ public class Colony {
 		for (int i = 0; i < m_worldWidth; i++) {
 			for (int j = 0; j < m_worldHeight; j++) {
 				m_arrScents[i][j].draw(g, m_totalSteps);
+			}
+		}
+		
+		g.setColor(Color.BLUE);
+		for(int i = 0; i < food.length; i++){
+			for(int b = 0; b < food[i].length; b++){
+				if(food[i][b]){
+					g.drawOval(i, b, 3, 3);
+				}
 			}
 		}
 
@@ -128,5 +199,7 @@ public class Colony {
 			child.mutate(m_mutatePercent);
 			m_arrAnts.set(numSelect + numCross + i, child);
 		}
+		
+		generateFood(m_numAnts);
 	}
 }
