@@ -32,9 +32,15 @@ public class Colony {
 	private int m_supply = 100;
 	private long m_totalSteps = 0;
 	private boolean[][] food;
+	public boolean hasEvaluation = false;
+	private int evaluation = 0;
 	
 	public int getGen(){
 		return generation;
+	}
+	
+	public int getEvaluation(){
+		return evaluation;
 	}
 	
 	public ArrayList<Ant> getAnts(){
@@ -43,6 +49,10 @@ public class Colony {
 	
 	public int getNumAnts(){
 		return m_numAnts;
+	}
+	
+	public long getTotalSteps(){
+		return m_totalSteps;
 	}
 
 	//create a new colony at position x, y with world width and height
@@ -100,7 +110,7 @@ public class Colony {
 				xIndex += dir == 1 ? 1 : dir == 3 ? -1 : 0;
 				yIndex += dir == 0 ? -1 : dir == 2 ? 1 : 0;
 				
-				if(xIndex < 0 || xIndex >= food.length || yIndex < 0 || yIndex > food[xIndex].length){
+				if(xIndex < 1 || xIndex >= food.length - 1 || yIndex < 1 || yIndex >= food[xIndex].length - 1){
 					remaining += amount;
 					break;
 				}
@@ -141,7 +151,7 @@ public class Colony {
 		for(int i = 0; i < food.length; i++){
 			for(int b = 0; b < food[i].length; b++){
 				if(food[i][b]){
-					g.drawOval(i, b, 3, 3);
+					g.fillOval(i, b, 3, 3);
 				}
 			}
 		}
@@ -200,6 +210,21 @@ public class Colony {
 			m_arrAnts.set(numSelect + numCross + i, child);
 		}
 		
+		for(int i = 0; i < m_numAnts - 1; i++){
+//			m_arrAnts.get(i).setPosition(pos.x, pos.y);
+		}
+		
+		m_arrScents = new Scent[m_worldWidth][m_worldHeight];
+		for (int i = 0; i < m_worldWidth; i++) {
+			for (int j = 0; j < m_worldHeight; j++) {
+				m_arrScents[i][j] = new Scent(i, j);
+			}
+		}
+		
 		generateFood(m_numAnts);
+		evaluation = 0;
+		hasEvaluation = false;
+		m_totalSteps = 0;
+		generation++;
 	}
 }
