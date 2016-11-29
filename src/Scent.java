@@ -30,10 +30,17 @@ public class Scent {
 
 	public void addStrength(long steps) {
 		m_lastSteps = steps;
-		m_strength += 20;
+		m_strength += 50;
 	}
 
 	public double getStrength(long steps) {
-		return m_strength - Math.max(0.1 * (steps - m_lastSteps), 0);
+		return m_strength;// - Math.max(0.1 * (steps - m_lastSteps), 0);
+	}
+
+	public int getX() {
+		return m_x;
+	}
+	public int getY() {
+		return m_y;
 	}
 }

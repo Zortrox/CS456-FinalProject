@@ -94,7 +94,7 @@ public class Colony {
 
 			for (int i = 0; i < m_numAnts; i++) {
 				Ant a = m_arrAnts.get(i);
-				a.step(m_arrScents, m_totalSteps);
+				a.step(m_arrScents, new boolean[1][1], m_totalSteps);
 			}
 
 			//m_supply--;

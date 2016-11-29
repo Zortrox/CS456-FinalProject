@@ -22,7 +22,7 @@ public class Simulation {
 	private boolean running = true;
 	private int gameWidth = 670;
 	private int gameHeight = 670;
-	private Colony col = new Colony(300, 300, gameWidth, gameHeight, 20, 0.25f, 0);
+	private Colony col = new Colony(300, 300, gameWidth, gameHeight, 5, 0.25f, 0);
 	private Colony bestColony;
 	private int sleepSpeed = 10;
 	private boolean paused = false;
