@@ -18,6 +18,7 @@ public class Ant {
 	private Random rand = new Random();
 	private int m_worldWidth;
 	private int m_worldHeight;
+	private boolean m_followingScent;
 
 	//create a new ant at position x, y
 	public Ant(int x, int y, int width, int height) {
@@ -26,6 +27,7 @@ public class Ant {
 		m_currY = y;
 		m_worldWidth = width;
 		m_worldHeight = height;
+		m_followingScent = false;
 	}
 
 	//chromo - chromosome to start out with
@@ -58,7 +60,7 @@ public class Ant {
 		}
 
 		//temp move conditions
-		if (m_movePos == null || (dist = m_movePos.distance(m_currX, m_currY)) < 2) {
+		if (m_movePos == null || (dist = m_movePos.distance(m_currX, m_currY)) < 2 && !m_followingScent) {
 			m_movePos = new Point(rand.nextInt(m_worldWidth), rand.nextInt(m_worldHeight));
 			dist = m_movePos.distance(m_currX, m_currY);
 		}
@@ -91,10 +93,15 @@ public class Ant {
 			} else {
 				m_movePos.setLocation(sX2, sY2);
 			}
+			m_followingScent = true;
 		} else if (scent1 != null) {
 			m_movePos.setLocation(sX1, sY1);
+			m_followingScent = true;
 		} else if (scent2 != null){
 			m_movePos.setLocation(sX2, sY2);
+			m_followingScent = true;
+		} else {
+			m_followingScent = false;
 		}
 
 	}
