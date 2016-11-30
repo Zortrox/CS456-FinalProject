@@ -90,7 +90,8 @@ public class Simulation {
 				try {
 					FileWriter fw = new FileWriter("Best Colony.txt");
 					fw.write(col.getGen() + "\n");
-					
+					fw.flush();
+
 					ArrayList<Ant> ants = col.getAnts();
 					for (int i = 0; i < ants.size(); i++) {
 						Chromosome c = ants.get(i).getChromosome();
