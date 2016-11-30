@@ -87,6 +87,8 @@ public class Colony {
 	public Colony(int x, int y, int width, int height, int numAnts, double mutatePercent, int gen) {
 		pos = new Point(x, y);
 
+		r.setSeed(System.currentTimeMillis());
+
 		generation = gen;
 		m_worldWidth = width;
 		m_worldHeight = height;
@@ -118,17 +120,17 @@ public class Colony {
 			}
 		}
 		
-		generateFood(m_numAnts);
+		generateFood(2500);
 	}
 	
 	private void generateFood(int foodCnt){
 		m_arrFood = new boolean[m_worldWidth][m_worldHeight];
-		
-		int remaining = Math.max(foodCnt, 50);
-		int sources = r.nextInt(Math.max(foodCnt / 8, 5)) + 2;
+
+		int remaining = foodCnt;
+		int sources = r.nextInt(foodCnt / 100) + 2;
 		
 		while(remaining > 0){
-			int amount = r.nextInt(Math.max(foodCnt / sources, 5)) + 1;
+			int amount = r.nextInt((int)(1.0f * foodCnt / sources)) + 1;
 			
 			if(remaining < amount){
 				amount = remaining;
@@ -156,19 +158,19 @@ public class Colony {
 				m_arrFood[xIndex][yIndex] = true;
 				amount--;
 				
-				if(dir == 0 && m_arrFood[xIndex + 1][yIndex] == false){
+				if(dir == 0 && !m_arrFood[xIndex + 1][yIndex]){
 					dir = 1;
 				}
 				
-				else if(dir == 1 && m_arrFood[xIndex][yIndex + 1] == false){
+				else if(dir == 1 && !m_arrFood[xIndex][yIndex + 1]){
 					dir = 2;
 				}
 				
-				else if(dir == 2 && m_arrFood[xIndex - 1][yIndex] == false){
+				else if(dir == 2 && !m_arrFood[xIndex - 1][yIndex]){
 					dir = 3;
 				}
 				
-				else if(dir == 3 && m_arrFood[xIndex][yIndex - 1] == false){
+				else if(dir == 3 && !m_arrFood[xIndex][yIndex - 1]){
 					dir = 0;
 				}
 			}
@@ -193,9 +195,9 @@ public class Colony {
 		
 		g.setColor(Color.BLUE);
 		for(int i = 0; i < m_arrFood.length; i++){
-			for(int b = 0; b < m_arrFood[i].length; b++){
+			for(int b = 0; b < m_arrFood[i].length; b++) {
 				if(m_arrFood[i][b]){
-					g.fillOval(i, b, 3, 3);
+					g.fillRect(i, b, 1, 1);
 				}
 			}
 		}
@@ -216,8 +218,9 @@ public class Colony {
 		//keep going unless run out of supply
 		while (numSteps > 0 && m_supply > 0) {
 			m_totalSteps++;
+			int stepWait = 10;
 
-			for (int i = 0; i < m_numAnts; i++) {
+			for (int i = 0; i < Math.min((m_totalSteps + stepWait - 1) / stepWait, m_numAnts); i++) {
 				Ant a = m_arrAnts.get(i);
 				if (a.step(m_arrScents, m_arrFood, m_totalSteps)) {
 					m_supply += 10;
@@ -260,7 +263,7 @@ public class Colony {
 			m_arrAnts.set(numSelect + numCross + i, child);
 		}
 		
-		for(int i = 0; i < m_numAnts - 1; i++){
+		for(int i = 0; i < m_numAnts; i++){
 			m_arrAnts.get(i).setPosition(pos.x, pos.y);
 		}
 		
@@ -271,7 +274,7 @@ public class Colony {
 			}
 		}
 		
-		generateFood(m_numAnts);
+		generateFood(2500);
 		evaluation = 0;
 		m_supply = MAX_SUPPLY;
 		hasEvaluation = false;

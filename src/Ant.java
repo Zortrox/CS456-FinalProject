@@ -12,7 +12,7 @@ public class Ant {
 	private Chromosome m_chromo;
 	private double m_currX = 0;
 	private double m_currY = 0;
-	private double m_angle = -1.0;
+	private double m_angle;
 	private Point m_movePos = null;
 	private double m_score;
 	private Random rand = new Random();
@@ -27,7 +27,6 @@ public class Ant {
 		@Override
 		public int compare(Scent s1, Scent s2) {
 			int comp = ((Double)s2.getStrength(0)).compareTo(s1.getStrength(0));
-
 			return comp;
 		}
 	}
@@ -44,6 +43,8 @@ public class Ant {
 		m_hasFood = false;
 		m_score = 0;
 		m_col = col;
+
+		m_angle = rand.nextDouble() * 2 * Math.PI - Math.PI;
 	}
 
 	//chromo - chromosome to start out with
@@ -59,6 +60,8 @@ public class Ant {
 		m_hasFood = false;
 		m_score = 0;
 		m_col = col;
+
+		m_angle = rand.nextDouble() * 2 * Math.PI - Math.PI;
 	}
 
 	public void draw(Graphics g) {
@@ -76,13 +79,26 @@ public class Ant {
 		boolean gotFood = false;
 		double dist;
 
-		int prevX = (int) m_currX;
-		int prevY = (int) m_currY;
+		int antennaeDist = 5;
+		double antennaeAngle = 0.2;
+
+		int prevX = (int)(m_currX + 0.5f);
+		int prevY = (int)(m_currY + 0.5f);
 		if (prevX >= 0 && prevX < m_worldWidth && prevY >= 0 && prevY < m_worldHeight) {
 			arrScents[prevX][prevY].addStrength(steps);
+			if (arrFood[prevX][prevY] && !m_hasFood) {
+				m_hasFood = true;
+				m_followingFood = false;
+				m_followingScent = false;
+				arrFood[prevX][prevY] = false;
+				m_angle -= Math.PI;
+				if (m_angle < -Math.PI) m_angle += 2 * Math.PI;
+				m_movePos.setLocation((int) (prevX + Math.cos(m_angle)), (int) (prevY + Math.sin(m_angle)));
+				m_score += 10;
+				gotFood = true;
+			}
 		}
 
-		//temp move conditions
 		if (m_movePos == null || (dist = m_movePos.distance(m_currX, m_currY)) < 2 && !m_followingScent && !m_followingFood) {
 			int randX = rand.nextInt(m_worldWidth);
 			int randY = rand.nextInt(m_worldHeight);
@@ -92,20 +108,38 @@ public class Ant {
 			m_movePos = new Point(randX, randY);
 			dist = m_movePos.distance(m_currX, m_currY);
 		} else if ((dist = m_movePos.distance(m_currX, m_currY)) < 2 && m_followingScent && !m_followingFood) {
-			m_followingScent = false;
+			ArrayList<Scent> nearbyScents = new ArrayList<>();
+			getScentsInLine(arrScents, nearbyScents, antennaeDist, m_angle);
+			getScentsInLine(arrScents, nearbyScents, antennaeDist, m_angle - Math.PI / 4);
+			getScentsInLine(arrScents, nearbyScents, antennaeDist, m_angle + Math.PI / 4);
+			getScentsInLine(arrScents, nearbyScents, antennaeDist, m_angle - Math.PI / 2);
+			getScentsInLine(arrScents, nearbyScents, antennaeDist, m_angle + Math.PI / 2);
+			getScentsInLine(arrScents, nearbyScents, antennaeDist, m_angle - Math.PI / 1.333);
+			getScentsInLine(arrScents, nearbyScents, antennaeDist, m_angle + Math.PI / 1.333);
+			Collections.sort(nearbyScents, new ScentComparator());
+
+			if (nearbyScents.size() > 0 && nearbyScents.get(0).getStrength(steps) > followPathStrength()) {
+				m_movePos.setLocation(nearbyScents.get(0).getX(), nearbyScents.get(0).getY());
+			} else {
+				m_followingScent = false;
+			}
 		} else if ((dist = m_movePos.distance(m_currX, m_currY)) < 2 && m_followingFood) {
 			m_followingFood = false;
-			m_hasFood = true;
-			arrFood[(int)m_currX][(int)m_currY] = false;
-			m_angle = -m_angle;
-			m_movePos.setLocation((int)(m_currX + Math.cos(m_angle)), (int)(m_currY + Math.sin(m_angle)));
-			m_score += 10;
-			gotFood = true;
+
+			if (arrFood[prevX][prevY] && !m_hasFood) {
+				m_hasFood = true;
+				arrFood[prevX][prevY] = false;
+				m_angle -= Math.PI;
+				if (m_angle < -Math.PI) m_angle += 2 * Math.PI;
+				m_movePos.setLocation((int) (prevX + Math.cos(m_angle)), (int) (prevY + Math.sin(m_angle)));
+				m_score += 10;
+				gotFood = true;
+			}
 		}
 
 		//move towards position
-		double xDisp = (m_movePos.x - m_currX) / dist;
-		double yDisp = (m_movePos.y - m_currY) / dist;
+		double xDisp = (m_movePos.x - m_currX) / (dist>.1?dist:.1);
+		double yDisp = (m_movePos.y - m_currY) / (dist>.1?dist:.1);
 		m_currX = m_currX + xDisp;
 		m_currY = m_currY + yDisp;
 
@@ -119,30 +153,12 @@ public class Ant {
 		if (m_angle > Math.PI) m_angle -= 2 * Math.PI;
 
 		if (!m_followingFood) {
-			int antennaeDist = 3;
-			double antennaeAngle = 0.2;
 			ArrayList<Scent> nearbyScents = new ArrayList<>();
 
-			ArrayList<Scent> scents1 = getScentsInLine(arrScents, antennaeDist, m_angle - antennaeAngle);
-			ArrayList<Scent> scents2 = getScentsInLine(arrScents, antennaeDist, m_angle);
-			ArrayList<Scent> scents3 = getScentsInLine(arrScents, antennaeDist, m_angle + antennaeAngle);
-
-			//copy all, removing duplicates
-			for (int i = 0; i < scents1.size(); i++) {
-				if (!nearbyScents.contains(scents1.get(i))) {
-					nearbyScents.add(scents1.get(i));
-				}
-			}
-			for (int i = 0; i < scents2.size(); i++) {
-				if (!nearbyScents.contains(scents2.get(i))) {
-					nearbyScents.add(scents2.get(i));
-				}
-			}
-			for (int i = 0; i < scents3.size(); i++) {
-				if (!nearbyScents.contains(scents3.get(i))) {
-					nearbyScents.add(scents3.get(i));
-				}
-			}
+			//add scents in "cone" in front of ant
+			getScentsInLine(arrScents, nearbyScents, antennaeDist, m_angle - antennaeAngle);
+			getScentsInLine(arrScents, nearbyScents, antennaeDist, m_angle);
+			getScentsInLine(arrScents, nearbyScents, antennaeDist, m_angle + antennaeAngle);
 
 			//determine which scent to follow
 			if (nearbyScents.size() > 0) {
@@ -169,7 +185,7 @@ public class Ant {
 						{m_currX + 1, m_currY + 1},
 						{m_currX, m_currY + 2}};
 				for (int i = 0; i < foodLocs.length; i++) {
-					if (foodLocs[i][0] >= 0 && foodLocs[i][0] < m_worldWidth && foodLocs[i][1] >= 0 && foodLocs[i][1] < m_worldHeight) {
+					if (!m_followingFood && foodLocs[i][0] >= 0 && foodLocs[i][0] < m_worldWidth && foodLocs[i][1] >= 0 && foodLocs[i][1] < m_worldHeight) {
 						if (arrFood[(int) foodLocs[i][0]][(int) foodLocs[i][1]]) {
 							m_movePos.setLocation(foodLocs[i][0], foodLocs[i][1]);
 							m_followingFood = true;
@@ -177,6 +193,11 @@ public class Ant {
 							m_score += 5;
 						}
 					}
+				}
+
+				//if no food around && supply is lower than wanted
+				if (!m_followingFood && m_col.getSupply() < m_chromo.getSupplyMind()) {
+					m_movePos.setLocation(rand.nextInt(m_worldWidth), rand.nextInt(m_worldHeight));
 				}
 			}
 		}
@@ -205,8 +226,8 @@ public class Ant {
 
 			for (int i = 0; i < scentLocs.length; i++) {
 				if (scentLocs[i][0] >= 0 && scentLocs[i][0] < m_worldWidth && scentLocs[i][1] >= 0 && scentLocs[i][1] < m_worldHeight) {
-					if (arrScents[ (int)scentLocs[i][0] ][ (int)scentLocs[i][1] ].getStrength(steps) > followPathStrength() ) {
-						colonyScents.add(arrScents[ (int)scentLocs[i][0] ][ (int)scentLocs[i][1] ]);
+					if (arrScents[ (int)(scentLocs[i][0] + 0.5f) ][ (int)(scentLocs[i][1] + 0.5f) ].getStrength(steps) > followPathStrength() ) {
+						colonyScents.add(arrScents[ (int)(scentLocs[i][0] + 0.5f) ][ (int)(scentLocs[i][1] + 0.5f) ]);
 					}
 				}
 			}
@@ -220,8 +241,6 @@ public class Ant {
 					m_movePos.setLocation(scentX, scentY);
 				}
 				m_followingScent = true;
-			} else {
-				m_followingScent = false;
 			}
 		}
 
@@ -255,7 +274,7 @@ public class Ant {
 	}
 
 	//Bresenham's line algorithm
-	private ArrayList<Scent> getScentsInLine(Scent[][] arrScents, int dist, double angle) {
+	private ArrayList<Scent> getScentsInLine(Scent[][] arrScents, ArrayList<Scent> nearbyScents, int dist, double angle) {
 		ArrayList<Scent> lineScents = new ArrayList<>();
 
 		int x = (int)m_currX;
@@ -277,7 +296,9 @@ public class Ant {
 		int numerator = longest >> 1 ;
 		for (int i=0;i<=longest;i++) {
 			if (x >= 0 && x < m_worldWidth && y >= 0 && y < m_worldHeight) {
-				lineScents.add(arrScents[x][y]);
+				if (!nearbyScents.contains(arrScents[x][y]) && x != (int)(m_currX + 0.5f) && y != (m_currY + 0.5f)) {
+					nearbyScents.add(arrScents[x][y]);
+				}
 			}
 			numerator += shortest ;
 			if (!(numerator<longest)) {
@@ -294,6 +315,6 @@ public class Ant {
 	}
 
 	private int followPathStrength() {
-		return (int) (m_chromo.getBravery() * Math.min(1, 1.0f * m_col.getSupply() / m_chromo.getSupplyMind()));
+		return (int) (m_chromo.getBravery() * (!m_hasFood?1:0) * Math.min(1, 1.0f * m_col.getSupply() / m_chromo.getSupplyMind()));
 	}
 }
