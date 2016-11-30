@@ -89,13 +89,14 @@ public class Simulation {
 			public void windowClosing(WindowEvent e) {
 				try {
 					FileWriter fw = new FileWriter("Best Colony.txt");
-
+					fw.write(col.getGen() + "\n");
+					
 					ArrayList<Ant> ants = col.getAnts();
 					for (int i = 0; i < ants.size(); i++) {
 						Chromosome c = ants.get(i).getChromosome();
 
-						fw.write(c.getBravery() + " " + c.getFrustration() + " " + c.getScentMind() + " "
-								+ c.getSourceMind() + " " + c.getStubbornness() + " " + c.getSupplyMind() + "\n");
+						fw.write(c.getSupplyMind() + " " + c.getScentMind() + " " + c.getSourceMind() + " "
+								+ c.getBravery() + " " + c.getStubbornness() + " " + c.getFrustration() + "\n");
 					}
 
 					fw.close();

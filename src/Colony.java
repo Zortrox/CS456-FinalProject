@@ -5,10 +5,13 @@
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Point;
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Random;
+import java.util.Scanner;
 
 public class Colony {
 
@@ -49,7 +52,7 @@ public class Colony {
 	
 	public void evaluate(){
 		for(int i = 0; i < m_arrAnts.size(); i++){
-//			evaluation += m_arrAnts.get(i).evaluate();
+//			evaluation += m_arrAnts.get(i).getScore();
 			evaluation += r.nextInt(100);
 		}
 		evaluation -= m_totalSteps * 5;
@@ -80,8 +83,21 @@ public class Colony {
 		m_numAnts = numAnts;
 		m_mutatePercent = mutatePercent;
 
-		for (int i = 0; i < m_numAnts; i++) {
-			m_arrAnts.add(new Ant(x, y, m_worldWidth, m_worldHeight));
+		try{
+			Scanner best = new Scanner(new File("Best Colony.txt"));
+	
+			generation = best.nextInt();
+			
+			while(best.hasNextLine() && best.hasNextInt()){
+				int[] genes = {best.nextInt(), best.nextInt(), best.nextInt(), best.nextInt(), best.nextInt(), best.nextInt()};
+				
+				m_arrAnts.add(new Ant(new Chromosome(genes), x, y, m_worldWidth, m_worldHeight));
+			}
+		} catch (FileNotFoundException e){
+			m_arrAnts = new ArrayList<>();
+			for (int i = 0; i < m_numAnts; i++) {
+				m_arrAnts.add(new Ant(x, y, m_worldWidth, m_worldHeight));
+			}
 		}
 
 		m_arrScents = new Scent[m_worldWidth][m_worldHeight];
