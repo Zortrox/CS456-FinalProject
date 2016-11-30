@@ -224,11 +224,12 @@ public class Ant {
 		return new Point((int)m_currX, (int)m_currY);
 	}
 
+	//Bresenham's line algorithm
 	public ArrayList<Scent> getScentsInLine(Scent[][] arrScents, int dist, double angle) {
 		ArrayList<Scent> lineScents = new ArrayList<>();
 
-		int x = m_currX;
-		int y = m_currY;
+		int x = (int)m_currX;
+		int y = (int)m_currY;
 		int w = (int)(dist * Math.cos(angle) - x);
 		int h = (int)(dist * Math.sin(angle) - y);
 		int dx1 = 0, dy1 = 0, dx2 = 0, dy2 = 0 ;
@@ -245,7 +246,9 @@ public class Ant {
 		}
 		int numerator = longest >> 1 ;
 		for (int i=0;i<=longest;i++) {
-			lineScents.add(arrScents[x][y]);
+			if (x >= 0 && x < m_worldWidth && y >= 0 && y < m_worldHeight) {
+				lineScents.add(arrScents[x][y]);
+			}
 			numerator += shortest ;
 			if (!(numerator<longest)) {
 				numerator -= longest ;
