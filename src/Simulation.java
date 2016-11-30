@@ -22,7 +22,7 @@ public class Simulation {
 	private boolean running = true;
 	private int gameWidth = 670;
 	private int gameHeight = 670;
-	private int stepLimit = 90;
+	private int stepLimit = 900;
 	private Colony col = new Colony(300, 300, gameWidth, gameHeight, 100, 0.25f, 0);
 	private Colony bestColony;
 	private int sleepSpeed = 0;
@@ -30,7 +30,9 @@ public class Simulation {
 	private JTextArea bestColonyText;
 
 	private JButton pause = new JButton("Pause");
-
+	private JButton lines = new JButton("Trails (On)");
+	private JButton draw = new JButton("Draw (On)");
+	
 	private class DrawArea extends JPanel implements ActionListener {
 		public void paint (Graphics g) {
 			g.setColor(new Color(226, 203, 183));
@@ -48,6 +50,26 @@ public class Simulation {
 				else{
 					paused = false;
 					pause.setText("Pause");
+				}
+			}
+			
+			else if(a.getActionCommand().equals("lines")){
+				col.drawLines = !col.drawLines;
+				
+				if(col.drawLines){
+					lines.setText("Trails (On)");
+				} else{
+					lines.setText("Trails (Off)");
+				}
+			}
+			
+			else if(a.getActionCommand().equals("draw")){
+				col.draw = !col.draw;
+				
+				if(col.draw){
+					draw.setText("Draw (On)");
+				} else{
+					draw.setText("Draw (Off)");
 				}
 			}
 		}
@@ -100,7 +122,13 @@ public class Simulation {
 		pause.addActionListener(drawArea);
 		controlPanel.add(pause);
 
-		controlPanel.add(new JButton("Start"));
+		lines.setActionCommand("lines");
+		lines.addActionListener(drawArea);
+		controlPanel.add(lines);
+		
+		draw.setActionCommand("draw");
+		draw.addActionListener(drawArea);
+		controlPanel.add(draw);
 
 		JTextArea colonyText = new JTextArea("Current Colony Info:\n", 10, 20);
 		colonyText.setEditable(false);
@@ -126,8 +154,6 @@ public class Simulation {
 
 		while(running){
 			if (!col.step() || col.getTotalSteps() > stepLimit) {
-//				running = false;
-				
 //				col.evaluate();
 				previousColonyText.setText("Previous Colony Info:\n");
 				colonyInfo(previousColonyText, col);
@@ -135,14 +161,14 @@ public class Simulation {
 				if(bestColony != null){
 					if(bestColony.getEvaluation() < col.getEvaluation()){
 						bestColony = col;
-						bestColonyText.setText("Best Colony Info:/n");
+						bestColonyText.setText("Best Colony Info:\n");
 						colonyInfo(bestColonyText, bestColony);
 					}
 				}
 				
 				else{
 					bestColony = col;
-					bestColonyText.setText("Best Colony Info:/n");
+					bestColonyText.setText("Best Colony Info:\n");
 					colonyInfo(bestColonyText, bestColony);
 				}
 				

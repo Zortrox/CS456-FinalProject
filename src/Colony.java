@@ -34,6 +34,8 @@ public class Colony {
 	private boolean[][] food;
 	public boolean hasEvaluation = false;
 	private int evaluation = 0;
+	public boolean drawLines = true;
+	public boolean draw = true;
 	
 	public int getGen(){
 		return generation;
@@ -138,12 +140,18 @@ public class Colony {
 	}
 
 	public void draw(Graphics g) {
+		if(!draw){
+			return;
+		}
+		
 		g.setColor(new Color(112, 86, 52));
 		g.fillOval(pos.x - 10, pos.y - 10, 20, 20);
 
-		for (int i = 0; i < m_worldWidth; i++) {
-			for (int j = 0; j < m_worldHeight; j++) {
-				m_arrScents[i][j].draw(g, m_totalSteps);
+		if(drawLines){
+			for (int i = 0; i < m_worldWidth; i++) {
+				for (int j = 0; j < m_worldHeight; j++) {
+					m_arrScents[i][j].draw(g, m_totalSteps);
+				}
 			}
 		}
 		
