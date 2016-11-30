@@ -228,13 +228,11 @@ public class Colony {
 			}
 
 			m_supply -= 1;
-
-			//TODO: REMOVE THIS WHEN ACTUALLY TESTING
-			if (m_supply < MAX_SUPPLY / 2) m_supply = MAX_SUPPLY / 2;
+			if (m_supply < 1) m_supply = 1;
 			numSteps--;
 		}
 
-		return m_supply > 0;
+		return m_supply > 1;
 	}
 
 	//sort then select, cross, & mutate ants
