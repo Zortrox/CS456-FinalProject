@@ -24,7 +24,7 @@ public class Simulation {
 	private int gameWidth = 670;
 	private int gameHeight = 670;
 	private int stepLimit = 3600;
-	private Colony col = new Colony(400, 300, gameWidth, gameHeight, 100, 0.25f, 0);
+	private Colony col = new Colony(335, 335, gameWidth, gameHeight, 100, 0.25f, 0);
 	private int bestEval = -100000;
 	private int sleepSpeed = 0;
 	private boolean paused = false;
