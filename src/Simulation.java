@@ -1,3 +1,4 @@
+
 /**
  * Created by Zortrox on 11/7/2016.
  */
@@ -32,9 +33,9 @@ public class Simulation {
 	private JButton pause = new JButton("Pause");
 	private JButton lines = new JButton("Trails (On)");
 	private JButton draw = new JButton("Draw (On)");
-	
+
 	private class DrawArea extends JPanel implements ActionListener {
-		public void paint (Graphics g) {
+		public void paint(Graphics g) {
 			g.setColor(new Color(226, 203, 183));
 			g.fillRect(0, 0, gameWidth, gameHeight);
 			col.draw(g);
@@ -42,45 +43,44 @@ public class Simulation {
 
 		@Override
 		public void actionPerformed(ActionEvent a) {
-			if(a.getActionCommand().equals("pause")){
-				if(!paused){
+			if (a.getActionCommand().equals("pause")) {
+				if (!paused) {
 					paused = true;
 					pause.setText("Resume");
-				}
-				else{
+				} else {
 					paused = false;
 					pause.setText("Pause");
 				}
 			}
-			
-			else if(a.getActionCommand().equals("lines")){
+
+			else if (a.getActionCommand().equals("lines")) {
 				col.drawLines = !col.drawLines;
-				
-				if(col.drawLines){
+
+				if (col.drawLines) {
 					lines.setText("Trails (On)");
-				} else{
+				} else {
 					lines.setText("Trails (Off)");
 				}
 			}
-			
-			else if(a.getActionCommand().equals("draw")){
+
+			else if (a.getActionCommand().equals("draw")) {
 				col.draw = !col.draw;
-				
-				if(col.draw){
+
+				if (col.draw) {
 					draw.setText("Draw (On)");
-				} else{
+				} else {
 					draw.setText("Draw (Off)");
 				}
 			}
 		}
 	}
 
-	public static void main(String args[]){
+	public static void main(String args[]) {
 		new Simulation();
 	}
 
-	public Simulation(){
-		//sets up the frame
+	public Simulation() {
+		// sets up the frame
 		JFrame frame = new JFrame();
 		frame.setTitle("Ant Colony Simulation");
 		frame.setResizable(false);
@@ -89,18 +89,21 @@ public class Simulation {
 			public void windowClosing(WindowEvent e) {
 				try {
 					FileWriter fw = new FileWriter("Best Colony.txt");
-					
+
 					ArrayList<Ant> ants = col.getAnts();
-					for(int i = 0; i < ants.size(); i++){
+					for (int i = 0; i < ants.size(); i++) {
 						Chromosome c = ants.get(i).getChromosome();
-		
-						fw.write(c.getBravery() + " " + c.getFrustration() + " " + c.getScentMind() + " " + c.getSourceMind() + " " + c.getStubbornness() + " " + c.getSupplyMind() + "\n");
+
+						fw.write(c.getBravery() + " " + c.getFrustration() + " " + c.getScentMind() + " "
+								+ c.getSourceMind() + " " + c.getStubbornness() + " " + c.getSupplyMind() + "\n");
 					}
-					
+
 					fw.close();
 
-				} catch (IOException e1) {e1.printStackTrace();}
-				
+				} catch (IOException e1) {
+					e1.printStackTrace();
+				}
+
 				System.exit(0);
 			}
 		});
@@ -109,11 +112,11 @@ public class Simulation {
 		pane.setDividerLocation(gameWidth);
 		pane.setDividerSize(0);
 
-		//simulation area
+		// simulation area
 		DrawArea drawArea = new DrawArea();
 		pane.add(drawArea);
 
-		//controls
+		// controls
 		JPanel controlPanel = new JPanel();
 
 		pause.setActionCommand("pause");
@@ -123,7 +126,7 @@ public class Simulation {
 		lines.setActionCommand("lines");
 		lines.addActionListener(drawArea);
 		controlPanel.add(lines);
-		
+
 		draw.setActionCommand("draw");
 		draw.addActionListener(drawArea);
 		controlPanel.add(draw);
@@ -144,56 +147,56 @@ public class Simulation {
 		controlPanel.add(bestColonyScroll);
 
 		pane.add(controlPanel);
-		
+
 		frame.add(pane);
 		frame.setVisible(true);
-		
+
 		colonyInfo(colonyText, col);
 
-		while(running){
+		while (running) {
 			if (!col.step() || col.getTotalSteps() > stepLimit) {
 				col.evaluate();
 				previousColonyText.setText("Previous Colony Info:\n");
 				colonyInfo(previousColonyText, col);
-				
-				if(bestEval < col.getEvaluation()){
+
+				if (bestEval < col.getEvaluation()) {
 					bestEval = col.getEvaluation();
 					bestColonyText.setText("Best Colony:\n");
 					colonyInfo(bestColonyText, col);
 				}
-				
+
 				col.newGeneration();
-				
+
 				colonyText.setText("Current Colony Info:\n");
 				colonyInfo(colonyText, col);
 			}
-			
+
 			drawArea.paintImmediately(0, 0, gameWidth, gameHeight);
 
 			try {
-				while(paused){
+				while (paused) {
 					Thread.sleep(10);
 				}
-				
+
 				Thread.sleep(sleepSpeed);
 			} catch (Exception ex) {
 				ex.printStackTrace();
 			}
 		}
 	}
-	
+
 	public static void colonyInfo(JTextArea colonyText, Colony col) {
 		colonyText.append("Generation: " + col.getGen() + "\n");
 		colonyText.append("Total Ants: " + col.getNumAnts() + "\n");
-		
-		if(col.hasEvaluation){
+
+		if (col.hasEvaluation) {
 			colonyText.append("Colony Evaluation: " + col.getEvaluation() + "\n");
 		}
-		
+
 		colonyText.append("\nAnts:\n\n");
 
 		ArrayList<Ant> ants = col.getAnts();
-		for(int i = 0; i < ants.size(); i++){
+		for (int i = 0; i < ants.size(); i++) {
 			colonyText.append("Ant " + i + ":\n");
 			colonyText.append("    Frustration: " + ants.get(i).getChromosome().getFrustration() + "\n");
 			colonyText.append("    Bravery: " + ants.get(i).getChromosome().getBravery() + "\n");

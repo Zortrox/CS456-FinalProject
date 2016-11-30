@@ -43,10 +43,6 @@ public class Colony {
 		return generation;
 	}
 	
-	public Colony copy() throws CloneNotSupportedException{
-		return (Colony) this.clone();
-	}
-	
 	public int getEvaluation(){
 		return evaluation;
 	}
