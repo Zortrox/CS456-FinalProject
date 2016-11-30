@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="CS456-FinalProject:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/CS456_FinalProject_jar</output-path>
+    <root id="archive" name="CS456-FinalProject.jar">
+      <element id="module-output" name="CS456-FinalProject" />
+    </root>
+  </artifact>
+</component>
