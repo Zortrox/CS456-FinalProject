@@ -86,7 +86,7 @@ public class Ant {
 		int prevY = (int)(m_currY + 0.5f);
 		if (prevX >= 0 && prevX < m_worldWidth && prevY >= 0 && prevY < m_worldHeight) {
 			arrScents[prevX][prevY].addStrength(steps);
-			if (arrFood[prevX][prevY] && !m_hasFood) {
+			if (arrFood[prevX][prevY] && !m_hasFood && m_movePos != null) {
 				m_hasFood = true;
 				m_followingFood = false;
 				m_followingScent = false;
