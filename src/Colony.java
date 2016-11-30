@@ -247,7 +247,7 @@ public class Colony {
 		}
 		
 		for(int i = 0; i < m_numAnts - 1; i++){
-//			m_arrAnts.get(i).setPosition(pos.x, pos.y);
+			m_arrAnts.get(i).setPosition(pos.x, pos.y);
 		}
 		
 		m_arrScents = new Scent[m_worldWidth][m_worldHeight];
