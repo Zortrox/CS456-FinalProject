@@ -31,7 +31,7 @@ public class Colony {
 	private int m_worldHeight;
 	private int m_supply = 100;
 	private long m_totalSteps = 0;
-	private boolean[][] food;
+	private boolean[][] m_arrFood;
 	public boolean hasEvaluation = false;
 	private int evaluation = 0;
 	public boolean drawLines = true;
@@ -95,7 +95,7 @@ public class Colony {
 	}
 	
 	private void generateFood(int foodCnt){
-		food = new boolean[m_worldWidth][m_worldHeight];
+		m_arrFood = new boolean[m_worldWidth][m_worldHeight];
 		
 		int remaining = foodCnt;
 		
@@ -117,34 +117,34 @@ public class Colony {
 			
 			remaining -= amount;
 			
-			food[xIndex][yIndex] = true;
+			m_arrFood[xIndex][yIndex] = true;
 			amount--;
 			
 			while(amount > 0){
 				xIndex += dir == 1 ? 1 : dir == 3 ? -1 : 0;
 				yIndex += dir == 0 ? -1 : dir == 2 ? 1 : 0;
 				
-				if(xIndex < 1 || xIndex >= food.length - 1 || yIndex < 1 || yIndex >= food[xIndex].length - 1){
+				if(xIndex < 1 || xIndex >= m_arrFood.length - 1 || yIndex < 1 || yIndex >= m_arrFood[xIndex].length - 1){
 					remaining += amount;
 					break;
 				}
 				
-				food[xIndex][yIndex] = true;
+				m_arrFood[xIndex][yIndex] = true;
 				amount--;
 				
-				if(dir == 0 && food[xIndex + 1][yIndex] == false){
+				if(dir == 0 && m_arrFood[xIndex + 1][yIndex] == false){
 					dir = 1;
 				}
 				
-				else if(dir == 1 && food[xIndex][yIndex + 1] == false){
+				else if(dir == 1 && m_arrFood[xIndex][yIndex + 1] == false){
 					dir = 2;
 				}
 				
-				else if(dir == 2 && food[xIndex - 1][yIndex] == false){
+				else if(dir == 2 && m_arrFood[xIndex - 1][yIndex] == false){
 					dir = 3;
 				}
 				
-				else if(dir == 3 && food[xIndex][yIndex - 1] == false){
+				else if(dir == 3 && m_arrFood[xIndex][yIndex - 1] == false){
 					dir = 0;
 				}
 			}
@@ -168,9 +168,9 @@ public class Colony {
 		}
 		
 		g.setColor(Color.BLUE);
-		for(int i = 0; i < food.length; i++){
-			for(int b = 0; b < food[i].length; b++){
-				if(food[i][b]){
+		for(int i = 0; i < m_arrFood.length; i++){
+			for(int b = 0; b < m_arrFood[i].length; b++){
+				if(m_arrFood[i][b]){
 					g.fillOval(i, b, 3, 3);
 				}
 			}
@@ -195,7 +195,7 @@ public class Colony {
 
 			for (int i = 0; i < m_numAnts; i++) {
 				Ant a = m_arrAnts.get(i);
-				a.step(m_arrScents, new boolean[1][1], m_totalSteps);
+				a.step(m_arrScents, m_arrFood, m_totalSteps);
 			}
 
 			//m_supply--;

@@ -23,7 +23,9 @@ public class Ant {
 	private class ScentComparator implements Comparator<Scent> {
 		@Override
 		public int compare(Scent s1, Scent s2) {
-			return ((Double)s2.getStrength(0)).compareTo(s1.getStrength(0));
+			int comp = ((Double)s2.getStrength(0)).compareTo(s1.getStrength(0));
+
+			return comp;
 		}
 	}
 
@@ -76,6 +78,8 @@ public class Ant {
 			}
 			m_movePos = new Point(randX, randY);
 			dist = m_movePos.distance(m_currX, m_currY);
+		} else if ((dist = m_movePos.distance(m_currX, m_currY)) < 2 && m_followingScent) {
+			m_followingScent = false;
 		}
 
 		//move towards position
@@ -90,10 +94,44 @@ public class Ant {
 		} else if (cross > 0) {
 			m_angle += 0.1f;
 		}
-		//m_angle = Math.atan2(yDisp, xDisp);
+		m_angle = Math.atan2(yDisp, xDisp);
+		if (m_angle > Math.PI) m_angle -= 2 * Math.PI;
 
-		int antennaeDist = 2;
+		int antennaeDist = 3;
 		double antennaeAngle = 0.2;
+		ArrayList<Scent> nearbyScents = new ArrayList<>();
+
+		ArrayList<Scent> scents1 = getScentsInLine(arrScents, antennaeDist, m_angle - antennaeAngle);
+		ArrayList<Scent> scents2 = getScentsInLine(arrScents, antennaeDist, m_angle);
+		ArrayList<Scent> scents3 = getScentsInLine(arrScents, antennaeDist, m_angle + antennaeAngle);
+
+		//copy all, removing duplicates
+		for (int i = 0; i < scents1.size(); i++) {
+			if (!nearbyScents.contains(scents1.get(i))) {
+				nearbyScents.add(scents1.get(i));
+			}
+		}
+		for (int i = 0; i < scents2.size(); i++) {
+			if (!nearbyScents.contains(scents2.get(i))) {
+				nearbyScents.add(scents2.get(i));
+			}
+		}
+		for (int i = 0; i < scents3.size(); i++) {
+			if (!nearbyScents.contains(scents3.get(i))) {
+				nearbyScents.add(scents3.get(i));
+			}
+		}
+
+		//determine which scent to follow
+		if (nearbyScents.size() > 0) {
+			Collections.sort(nearbyScents, new ScentComparator());
+			if (nearbyScents.get(0).getStrength(steps) > m_chromo.getBravery()) {
+				m_movePos.setLocation(nearbyScents.get(0).getX(), nearbyScents.get(0).getY());
+				m_followingScent = true;
+			}
+		}
+
+		/*
 		int sX1 = (int)(m_currX + antennaeDist * Math.cos(m_angle - antennaeAngle));
 		int sY1 = (int)(m_currY + antennaeDist * Math.sin(m_angle - antennaeAngle));
 		int sX2 = (int)(m_currX + antennaeDist * Math.cos(m_angle));
@@ -198,7 +236,7 @@ public class Ant {
 			}
 		} else {
 			m_followingScent = false;
-		}
+		}*/
 
 	}
 
@@ -230,8 +268,8 @@ public class Ant {
 
 		int x = (int)m_currX;
 		int y = (int)m_currY;
-		int w = (int)(dist * Math.cos(angle) - x);
-		int h = (int)(dist * Math.sin(angle) - y);
+		int w = (int)(dist * Math.cos(angle));
+		int h = (int)(dist * Math.sin(angle));
 		int dx1 = 0, dy1 = 0, dx2 = 0, dy2 = 0 ;
 		if (w < 0) dx1 = -1; else if (w > 0) dx1 = 1;
 		if (h < 0) dy1 = -1; else if (h > 0) dy1 = 1;
