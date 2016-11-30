@@ -22,11 +22,11 @@ public class Simulation {
 	private boolean running = true;
 	private int gameWidth = 670;
 	private int gameHeight = 670;
+	private int stepLimit = 90;
 	private Colony col = new Colony(300, 300, gameWidth, gameHeight, 100, 0.25f, 0);
 	private Colony bestColony;
-	private int sleepSpeed = 10;
+	private int sleepSpeed = 0;
 	private boolean paused = false;
-	private int generation = 0;
 	private JTextArea bestColonyText;
 
 	private JButton pause = new JButton("Pause");
@@ -125,9 +125,33 @@ public class Simulation {
 		colonyInfo(colonyText, col);
 
 		while(running){
-			if (!col.step()) {
-				running = false;
+			if (!col.step() || col.getTotalSteps() > stepLimit) {
+//				running = false;
+				
+//				col.evaluate();
+				previousColonyText.setText("Previous Colony Info:\n");
+				colonyInfo(previousColonyText, col);
+				
+				if(bestColony != null){
+					if(bestColony.getEvaluation() < col.getEvaluation()){
+						bestColony = col;
+						bestColonyText.setText("Best Colony Info:/n");
+						colonyInfo(bestColonyText, bestColony);
+					}
+				}
+				
+				else{
+					bestColony = col;
+					bestColonyText.setText("Best Colony Info:/n");
+					colonyInfo(bestColonyText, bestColony);
+				}
+				
+				col.newGeneration();
+				
+				colonyText.setText("Current Colony Info:\n");
+				colonyInfo(colonyText, col);
 			}
+			
 			drawArea.paintImmediately(0, 0, gameWidth, gameHeight);
 
 			try {
@@ -145,6 +169,11 @@ public class Simulation {
 	public static void colonyInfo(JTextArea colonyText, Colony col) {
 		colonyText.append("Generation: " + col.getGen() + "\n");
 		colonyText.append("Total Ants: " + col.getNumAnts() + "\n");
+		
+		if(col.hasEvaluation){
+			colonyText.append("Colony Evaluation: " + col.getEvaluation() + "\n");
+		}
+		
 		colonyText.append("\nAnts:\n\n");
 
 		ArrayList<Ant> ants = col.getAnts();
