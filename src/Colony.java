@@ -29,7 +29,8 @@ public class Colony {
 	private Point pos;
 	private int m_worldWidth;
 	private int m_worldHeight;
-	private int m_supply = 100;
+	private static final int MAX_SUPPLY = 1000;
+	private int m_supply = MAX_SUPPLY;
 	private long m_totalSteps = 0;
 	private boolean[][] m_arrFood;
 	public boolean hasEvaluation = false;
@@ -49,10 +50,9 @@ public class Colony {
 	
 	public void evaluate(){
 		for(int i = 0; i < m_arrAnts.size(); i++){
-//			evaluation += m_arrAnts.get(i).evaluate();
-			evaluation += r.nextInt(100);
+			evaluation += m_arrAnts.get(i).getScore();
 		}
-		evaluation -= m_totalSteps * 5;
+		//evaluation -= m_totalSteps * 5;
 		
 		hasEvaluation = true;
 	}
@@ -69,6 +69,17 @@ public class Colony {
 		return m_totalSteps;
 	}
 
+	public int getX() {
+		return pos.x;
+	}
+	public int getY() {
+		return pos.y;
+	}
+
+	public int getSupply() {
+		return m_supply;
+	}
+
 	//create a new colony at position x, y with world width and height
 	public Colony(int x, int y, int width, int height, int numAnts, double mutatePercent, int gen) {
 		pos = new Point(x, y);
@@ -81,7 +92,7 @@ public class Colony {
 		m_mutatePercent = mutatePercent;
 
 		for (int i = 0; i < m_numAnts; i++) {
-			m_arrAnts.add(new Ant(x, y, m_worldWidth, m_worldHeight));
+			m_arrAnts.add(new Ant(x, y, m_worldWidth, m_worldHeight, this));
 		}
 
 		m_arrScents = new Scent[m_worldWidth][m_worldHeight];
@@ -97,14 +108,11 @@ public class Colony {
 	private void generateFood(int foodCnt){
 		m_arrFood = new boolean[m_worldWidth][m_worldHeight];
 		
-		int remaining = foodCnt;
-		
-		Random r = new Random();
-		
-		int sources = r.nextInt(foodCnt / 2) + 1;
+		int remaining = Math.max(foodCnt, 50);
+		int sources = r.nextInt(Math.max(foodCnt / 8, 5)) + 2;
 		
 		while(remaining > 0){
-			int amount = r.nextInt(foodCnt / sources) + 1;
+			int amount = r.nextInt(Math.max(foodCnt / sources, 5)) + 1;
 			
 			if(remaining < amount){
 				amount = remaining;
@@ -195,14 +203,19 @@ public class Colony {
 
 			for (int i = 0; i < m_numAnts; i++) {
 				Ant a = m_arrAnts.get(i);
-				a.step(m_arrScents, m_arrFood, m_totalSteps);
+				if (a.step(m_arrScents, m_arrFood, m_totalSteps)) {
+					m_supply += 10;
+				}
 			}
 
-			//m_supply--;
+			m_supply -= 1;
+
+			//TODO: REMOVE THIS WHEN ACTUALLY TESTING
+			if (m_supply < MAX_SUPPLY / 2) m_supply = MAX_SUPPLY / 2;
 			numSteps--;
 		}
 
-		return (m_supply > 0);
+		return m_supply > 0;
 	}
 
 	//sort then select, cross, & mutate ants
@@ -211,13 +224,14 @@ public class Colony {
 
 		int rem = m_numAnts % 3;
 
-		//select top 25% (round up) + 1
-		int numSelect = (int)((double)m_numAnts / 3 + 0.5f) + 1;
+		//select top 20% (round up) + 1
+		double percentSelect = 0.2f;
+		int numSelect = (int)((double)m_numAnts * percentSelect + 0.5f) + 1;
 
 		//cross each selected ant with the next one down
 		int numCross = numSelect - 1;
 		for (int i = 0; i < numCross; i++) {
-			Ant child = new Ant(m_arrAnts.get(i).getChromosome(), pos.x, pos.y, m_worldWidth, m_worldHeight);
+			Ant child = new Ant(m_arrAnts.get(i).getChromosome(), pos.x, pos.y, m_worldWidth, m_worldHeight, this);
 			child.cross(m_arrAnts.get(numSelect + 1));
 			m_arrAnts.set(numSelect + i, child);
 		}
@@ -225,7 +239,7 @@ public class Colony {
 		//mutate rest of ants based on selected ants
 		int numMutate = m_numAnts - numSelect - numCross;
 		for (int i = 0; i < numMutate; i++) {
-			Ant child = new Ant(m_arrAnts.get(i).getChromosome(), pos.x, pos.y, m_worldWidth, m_worldHeight);
+			Ant child = new Ant(m_arrAnts.get(i).getChromosome(), pos.x, pos.y, m_worldWidth, m_worldHeight, this);
 			child.mutate(m_mutatePercent);
 			m_arrAnts.set(numSelect + numCross + i, child);
 		}
@@ -243,6 +257,7 @@ public class Colony {
 		
 		generateFood(m_numAnts);
 		evaluation = 0;
+		m_supply = MAX_SUPPLY;
 		hasEvaluation = false;
 		m_totalSteps = 0;
 		generation++;

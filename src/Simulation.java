@@ -171,7 +171,11 @@ public class Simulation {
 				colonyInfo(colonyText, col);
 			}
 
-			drawArea.paintImmediately(0, 0, gameWidth, gameHeight);
+			if (col.draw) {
+				drawArea.paintImmediately(0, 0, gameWidth, gameHeight);
+			} else {
+				drawArea.repaint();
+			}
 
 			try {
 				while (paused) {
