@@ -249,6 +249,10 @@ public class Ant {
 	public Point getPosition() {
 		return new Point((int)m_currX, (int)m_currY);
 	}
+	public void setPosition(int x, int y) {
+		m_currX = x;
+		m_currY = y;
+	}
 
 	//Bresenham's line algorithm
 	private ArrayList<Scent> getScentsInLine(Scent[][] arrScents, int dist, double angle) {

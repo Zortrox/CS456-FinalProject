@@ -102,12 +102,12 @@ public class Colony {
 			while(best.hasNextLine() && best.hasNextInt()){
 				int[] genes = {best.nextInt(), best.nextInt(), best.nextInt(), best.nextInt(), best.nextInt(), best.nextInt()};
 
-				m_arrAnts.add(new Ant(new Chromosome(genes), x, y, m_worldWidth, m_worldHeight));
+				m_arrAnts.add(new Ant(new Chromosome(genes), x, y, m_worldWidth, m_worldHeight, this));
 			}
 		} catch (FileNotFoundException e){
 			m_arrAnts = new ArrayList<>();
 			for (int i = 0; i < m_numAnts; i++) {
-				m_arrAnts.add(new Ant(x, y, m_worldWidth, m_worldHeight));
+				m_arrAnts.add(new Ant(x, y, m_worldWidth, m_worldHeight, this));
 			}
 		}
 
