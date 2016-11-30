@@ -24,7 +24,7 @@ public class Simulation {
 	private int gameHeight = 670;
 	private int stepLimit = 900;
 	private Colony col = new Colony(300, 300, gameWidth, gameHeight, 100, 0.25f, 0);
-	private Colony bestColony;
+	private int bestEval = -100000;
 	private int sleepSpeed = 0;
 	private boolean paused = false;
 	private JTextArea bestColonyText;
@@ -87,21 +87,19 @@ public class Simulation {
 		frame.setSize(gameWidth + 260, gameHeight + 30);
 		frame.addWindowListener(new WindowAdapter() {
 			public void windowClosing(WindowEvent e) {
-				if(bestColony != null){
-					try {
-						FileWriter fw = new FileWriter("Best Colony.txt");
-						
-						ArrayList<Ant> ants = col.getAnts();
-						for(int i = 0; i < ants.size(); i++){
-							Chromosome c = ants.get(i).getChromosome();
-			
-							fw.write(c.getBravery() + " " + c.getFrustration() + " " + c.getScentMind() + " " + c.getSourceMind() + " " + c.getStubbornness() + " " + c.getSupplyMind() + "\n");
-						}
-						
-						fw.close();
+				try {
+					FileWriter fw = new FileWriter("Best Colony.txt");
+					
+					ArrayList<Ant> ants = col.getAnts();
+					for(int i = 0; i < ants.size(); i++){
+						Chromosome c = ants.get(i).getChromosome();
+		
+						fw.write(c.getBravery() + " " + c.getFrustration() + " " + c.getScentMind() + " " + c.getSourceMind() + " " + c.getStubbornness() + " " + c.getSupplyMind() + "\n");
+					}
+					
+					fw.close();
 
-					} catch (IOException e1) {e1.printStackTrace();}
-				}
+				} catch (IOException e1) {e1.printStackTrace();}
 				
 				System.exit(0);
 			}
@@ -154,22 +152,14 @@ public class Simulation {
 
 		while(running){
 			if (!col.step() || col.getTotalSteps() > stepLimit) {
-//				col.evaluate();
+				col.evaluate();
 				previousColonyText.setText("Previous Colony Info:\n");
 				colonyInfo(previousColonyText, col);
 				
-				if(bestColony != null){
-					if(bestColony.getEvaluation() < col.getEvaluation()){
-						bestColony = col;
-						bestColonyText.setText("Best Colony Info:\n");
-						colonyInfo(bestColonyText, bestColony);
-					}
-				}
-				
-				else{
-					bestColony = col;
-					bestColonyText.setText("Best Colony Info:\n");
-					colonyInfo(bestColonyText, bestColony);
+				if(bestEval < col.getEvaluation()){
+					bestEval = col.getEvaluation();
+					bestColonyText.setText("Best Colony:\n");
+					colonyInfo(bestColonyText, col);
 				}
 				
 				col.newGeneration();

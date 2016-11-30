@@ -37,12 +37,28 @@ public class Colony {
 	public boolean drawLines = true;
 	public boolean draw = true;
 	
+	private Random r = new Random();
+	
 	public int getGen(){
 		return generation;
 	}
 	
+	public Colony copy() throws CloneNotSupportedException{
+		return (Colony) this.clone();
+	}
+	
 	public int getEvaluation(){
 		return evaluation;
+	}
+	
+	public void evaluate(){
+		for(int i = 0; i < m_arrAnts.size(); i++){
+//			evaluation += m_arrAnts.get(i).evaluate();
+			evaluation += r.nextInt(100);
+		}
+		evaluation -= m_totalSteps * 5;
+		
+		hasEvaluation = true;
 	}
 	
 	public ArrayList<Ant> getAnts(){
