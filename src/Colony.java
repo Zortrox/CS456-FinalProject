@@ -1,7 +1,3 @@
-/**
- * Created by Zortrox on 11/8/2016.
- */
-
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Point;
@@ -26,7 +22,7 @@ public class Colony {
 	private int generation;
 	private int m_numAnts = 10;
 	private double m_mutatePercent = 0.25;
-	private ArrayList<Ant> m_arrAnts = new ArrayList<>();
+	private ArrayList<Ant> m_arrAnts = new ArrayList<>();	//the ants
 	//private LinkedList<Trail> m_arrTrails = new LinkedList<>();
 	private Scent[][] m_arrScents;
 	private Point pos;
@@ -34,10 +30,12 @@ public class Colony {
 	private int m_worldHeight;
 	public static final int MAX_SUPPLY = 10000;
 	private int m_supply = MAX_SUPPLY;
-	private long m_totalSteps = 0;
-	private boolean[][] m_arrFood;
+	private long m_totalSteps = 0;		//how many steps the colony has taken
+	private boolean[][] m_arrFood;		//the food
 	public boolean hasEvaluation = false;
-	private int evaluation = 0;
+	private int evaluation = 0;			//the evaluation value
+	
+	//what do we draw
 	public boolean drawLines = true;
 	public boolean draw = true;
 	
@@ -52,11 +50,11 @@ public class Colony {
 	}
 	
 	public void evaluate(){
+		//total the score for each ant
 		for(int i = 0; i < m_arrAnts.size(); i++){
 			evaluation += m_arrAnts.get(i).getScore();
 		}
-		//evaluation -= m_totalSteps * 5;
-		
+
 		hasEvaluation = true;
 	}
 	
@@ -105,6 +103,7 @@ public class Colony {
 		m_numAnts = numAnts;
 		m_mutatePercent = mutatePercent;
 
+		//load in the best colony if one is saved
 		try{
 			Scanner best = new Scanner(new File("Best Colony.txt"));
 
@@ -116,12 +115,15 @@ public class Colony {
 				m_arrAnts.add(new Ant(new Chromosome(genes), x, y, this));
 			}
 		} catch (FileNotFoundException e){
+			
+			//otherwise make random ants
 			m_arrAnts = new ArrayList<>();
 			for (int i = 0; i < m_numAnts; i++) {
 				m_arrAnts.add(new Ant(x, y, this));
 			}
 		}
 
+		//initialize all scents
 		m_arrScents = new Scent[m_worldWidth][m_worldHeight];
 		for (int i = 0; i < m_worldWidth; i++) {
 			for (int j = 0; j < m_worldHeight; j++) {
@@ -129,16 +131,22 @@ public class Colony {
 			}
 		}
 		
+		//generate the food
 		generateFood(2500);
 	}
 	
 	private void generateFood(int foodCnt){
+		//make the food array
 		m_arrFood = new boolean[m_worldWidth][m_worldHeight];
 
+		//the total food remaining
 		int remaining = foodCnt;
+		//the number of food sources
 		int sources = r.nextInt(foodCnt / 100) + 2;
 		
+		//while more food is needed
 		while(remaining > 0){
+			//get an amount of food to make
 			int amount = r.nextInt((int)(1.0f * foodCnt / sources)) + 1;
 			
 			if(remaining < amount){
@@ -154,24 +162,29 @@ public class Colony {
 			} while (pos.distance(xIndex, yIndex) < 20);
 			
 			int dir = 0;
-			
 			remaining -= amount;
 			
+			//set food at the given point
 			m_arrFood[xIndex][yIndex] = true;
 			amount--;
 			
+			//spiral outward, placing food until there is no amount left
 			while(amount > 0){
+				//get the new position based on the direction of movement
 				xIndex += dir == 1 ? 1 : dir == 3 ? -1 : 0;
 				yIndex += dir == 0 ? -1 : dir == 2 ? 1 : 0;
 				
+				//quit if off the screen
 				if(xIndex < 1 || xIndex >= m_arrFood.length - 1 || yIndex < 1 || yIndex >= m_arrFood[xIndex].length - 1){
 					remaining += amount;
 					break;
 				}
 				
+				//set the new point of food
 				m_arrFood[xIndex][yIndex] = true;
 				amount--;
 				
+				//change direction
 				if(dir == 0 && !m_arrFood[xIndex + 1][yIndex]){
 					dir = 1;
 				}
@@ -196,9 +209,11 @@ public class Colony {
 			return;
 		}
 		
+		//draw the colony
 		g.setColor(new Color(112, 86, 52));
 		g.fillOval(pos.x - 10, pos.y - 10, 20, 20);
 
+		//draw the trails
 		if(drawLines){
 			for (int i = 0; i < m_worldWidth; i++) {
 				for (int j = 0; j < m_worldHeight; j++) {
@@ -207,6 +222,7 @@ public class Colony {
 			}
 		}
 		
+		//draw the food
 		g.setColor(Color.BLUE);
 		for(int i = 0; i < m_arrFood.length; i++){
 			for(int b = 0; b < m_arrFood[i].length; b++) {
@@ -216,6 +232,7 @@ public class Colony {
 			}
 		}
 
+		//draw the ants
 		g.setColor(Color.BLACK);
 		for (int i = 0; i < m_numAnts; i++) {
 			m_arrAnts.get(i).draw(g);
@@ -234,6 +251,7 @@ public class Colony {
 			m_totalSteps++;
 			int stepWait = 10;
 
+			//move the ants
 			for (int i = 0; i < Math.min((m_totalSteps + stepWait - 1) / stepWait, m_numAnts); i++) {
 				Ant a = m_arrAnts.get(i);
 				if (a.step(m_arrScents, m_arrFood, m_totalSteps)) {
@@ -251,6 +269,7 @@ public class Colony {
 
 	//sort then select, cross, & mutate ants
 	public void newGeneration() {
+		//sort the ants
 		Collections.sort(m_arrAnts, new AntComparator());
 
 		int rem = m_numAnts % 3;
@@ -279,6 +298,7 @@ public class Colony {
 			m_arrAnts.set(numSelect + numCross + i, child);
 		}
 		
+		//reset the scent trails
 		m_arrScents = new Scent[m_worldWidth][m_worldHeight];
 		for (int i = 0; i < m_worldWidth; i++) {
 			for (int j = 0; j < m_worldHeight; j++) {
@@ -286,7 +306,10 @@ public class Colony {
 			}
 		}
 		
+		//regenerate food
 		generateFood(2500);
+		
+		//reset initial values
 		evaluation = 0;
 		m_supply = MAX_SUPPLY;
 		hasEvaluation = false;
