@@ -13,10 +13,17 @@ public class Chromosome {
 	private int m_stubborness;
 	private int m_frustration;
 
+	private static final int MAX_SUPPLY = Colony.MAX_SUPPLY;
+	private static final int MAX_SCENT = 101;
+	private static final int MAX_SOURCE = 100;
+	private static final int MAX_BRAVERY = 101;
+	private static final int MAX_STUBBORN = 101;
+	private static final int MAX_FRUSTRATE = 10000;
+
 	private Random rand = new Random();
 
 	public Chromosome() {
-		mutate(1.0f);
+		randomize();
 	}
 	public Chromosome(int[] genes) {
 		m_supplymind = genes[0];
@@ -28,13 +35,83 @@ public class Chromosome {
 	}
 
 	//percent - between 0 and 1
+	//changes the genes by 0-5%
 	public void mutate(double percent) {
-		if (rand.nextDouble() < percent) m_supplymind = rand.nextInt(Colony.MAX_SUPPLY) + 1;
-		if (rand.nextDouble() < percent) m_scentmind = rand.nextInt(101);
-		if (rand.nextDouble() < percent) m_sourcemind = rand.nextInt(100) + 1;
-		if (rand.nextDouble() < percent) m_bravery = rand.nextInt(101);
-		if (rand.nextDouble() < percent) m_stubborness = rand.nextInt(101);
-		if (rand.nextDouble() < percent) m_frustration = rand.nextInt(10000);
+		if (rand.nextDouble() < percent) {
+			int change = rand.nextInt((int)(MAX_SUPPLY * 0.05)) + 1;
+			if (rand.nextDouble() > 0.5) {
+				m_supplymind += change;
+				if (m_supplymind > MAX_SUPPLY) m_supplymind = MAX_SUPPLY;
+			}
+			else {
+				m_supplymind -= change;
+				if (m_supplymind < 1) m_supplymind = 1;
+			}
+		}
+		if (rand.nextDouble() < percent) {
+			int change = rand.nextInt((int)(MAX_SCENT * 0.05)) + 1;
+			if (rand.nextDouble() > 0.5) {
+				m_scentmind += change;
+				if (m_scentmind >= MAX_SCENT) m_scentmind = MAX_SCENT - 1;
+			}
+			else {
+				m_scentmind -= change;
+				if (m_scentmind < 0) m_scentmind = 0;
+			}
+		}
+		if (rand.nextDouble() < percent) {
+			int change = rand.nextInt((int)(MAX_SOURCE * 0.05)) + 1;
+			if (rand.nextDouble() > 0.5) {
+				m_sourcemind += change;
+				if (m_sourcemind > MAX_SOURCE) m_sourcemind = MAX_SOURCE;
+			}
+			else {
+				m_sourcemind -= change;
+				if (m_sourcemind < 1) m_sourcemind = 1;
+			}
+		}
+		if (rand.nextDouble() < percent) {
+			int change = rand.nextInt((int)(MAX_BRAVERY * 0.05)) + 1;
+			if (rand.nextDouble() > 0.5) {
+				m_bravery += change;
+				if (m_bravery >= MAX_BRAVERY) m_bravery = MAX_BRAVERY - 1;
+			}
+			else {
+				m_bravery -= change;
+				if (m_bravery < 0) m_bravery = 0;
+			}
+		}
+		if (rand.nextDouble() < percent) {
+			int change = rand.nextInt((int)(MAX_STUBBORN * 0.05)) + 1;
+			if (rand.nextDouble() > 0.5) {
+				m_stubborness += change;
+				if (m_stubborness >= MAX_STUBBORN) m_stubborness = MAX_STUBBORN - 1;
+			}
+			else {
+				m_stubborness -= change;
+				if (m_stubborness < 0) m_stubborness = 0;
+			}
+		}
+		if (rand.nextDouble() < percent) {
+			int change = rand.nextInt((int)(MAX_FRUSTRATE * 0.05)) + 1;
+			if (rand.nextDouble() > 0.5) {
+				m_frustration += change;
+				if (m_frustration >= MAX_FRUSTRATE) m_frustration = MAX_FRUSTRATE - 1;
+			}
+			else {
+				m_frustration -= change;
+				if (m_frustration < 0) m_frustration = 0;
+			}
+		}
+	}
+
+	public void randomize() {
+		m_supplymind = rand.nextInt(Colony.MAX_SUPPLY) + 1;
+		m_scentmind = rand.nextInt(MAX_SCENT);
+		m_sourcemind = rand.nextInt(MAX_SOURCE) + 1;
+		m_bravery = rand.nextInt(MAX_BRAVERY);
+		m_stubborness = rand.nextInt(MAX_STUBBORN);
+		m_frustration = rand.nextInt(MAX_FRUSTRATE);
 	}
 
 	public void cross(Chromosome other) {

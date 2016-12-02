@@ -145,13 +145,13 @@ public class Colony {
 				amount = remaining;
 			}
 
-			//create food sources at least 150 pixels away
+			//create food sources at least 20 pixels away
 			int xIndex;
 			int yIndex;
 			do {
 				xIndex = r.nextInt(m_worldWidth);
 				yIndex = r.nextInt(m_worldHeight);
-			} while (pos.distance(xIndex, yIndex) < 150);
+			} while (pos.distance(xIndex, yIndex) < 20);
 			
 			int dir = 0;
 			

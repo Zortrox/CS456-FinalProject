@@ -22,7 +22,7 @@ public class Ant {
 	private boolean m_hasFood;
 	private Colony m_col = null;
 
-	private static final double SCENT_DECAY = 0.95;
+	private static final double SCENT_DECAY = 0.99;
 
 	private class ColonyScentComparator implements Comparator<Scent> {
 		@Override
@@ -214,6 +214,10 @@ public class Ant {
 			dist = m_movePos.distance(pixelX, pixelY);
 		}
 
+		//update scent trails
+		addFoodScent(arrScents, pixelX, pixelY, steps);
+		addColonyScent(arrScents, pixelX, pixelY, steps);
+
 		//move towards position
 		double deltaX = (m_movePos.x - pixelX) / (dist>.1?dist:.1);
 		double deltaY = (m_movePos.y - pixelY) / (dist>.1?dist:.1);
@@ -222,6 +226,8 @@ public class Ant {
 		m_angle = Math.atan2(deltaY, deltaX);
 		if (m_angle > Math.PI) m_angle -= 2 * Math.PI;
 
+		int prevPixelX = pixelX;
+		int prevPixelY = pixelY;
 		pixelX = (int)(m_currX + 0.5f);
 		pixelY = (int)(m_currY + 0.5f);
 		if (pixelX > m_worldWidth - 1) pixelX = m_worldWidth - 1;
@@ -236,10 +242,6 @@ public class Ant {
 		if (arrScents[pixelX][pixelY].getFoodStrength(steps + 1) > m_lastFoodScent) {
 			m_lastFoodScent = arrScents[pixelX][pixelY].getFoodStrength(steps + 1);
 		}
-
-		//update scent trails
-		addFoodScent(arrScents, pixelX, pixelY, steps);
-		addColonyScent(arrScents, pixelX, pixelY, steps);
 
 		//return if food was added to colony
 		return gotFood;
@@ -347,20 +349,10 @@ public class Ant {
 
 	private void addColonyScent(Scent[][] arrScents, int x, int y, long steps) {
 		arrScents[x][y].addColonyStrength(steps, m_lastColonyScent * SCENT_DECAY);
-
-//		if (y < m_worldHeight - 1) arrScents[x][y+1].addColonyStrength(steps, m_lastColonyScent * SCENT_DECAY * SCENT_DECAY);
-//		if (y > 0) arrScents[x][y-1].addColonyStrength(steps, m_lastColonyScent * SCENT_DECAY * SCENT_DECAY);
-//		if (x < m_worldWidth - 1) arrScents[x+1][y].addColonyStrength(steps, m_lastColonyScent * SCENT_DECAY * SCENT_DECAY);
-//		if (x > 0) arrScents[x-1][y].addColonyStrength(steps, m_lastColonyScent * SCENT_DECAY * SCENT_DECAY);
 	}
 
 	private void addFoodScent(Scent[][] arrScents, int x, int y, long steps) {
 		arrScents[x][y].addFoodStrength(steps, m_lastFoodScent * SCENT_DECAY);
-
-//		if (y < m_worldHeight - 1) arrScents[x][y+1].addFoodStrength(steps, m_lastFoodScent * SCENT_DECAY * SCENT_DECAY);
-//		if (y > 0) arrScents[x][y-1].addFoodStrength(steps, m_lastFoodScent * SCENT_DECAY * SCENT_DECAY);
-//		if (x < m_worldWidth - 1) arrScents[x+1][y].addFoodStrength(steps, m_lastFoodScent * SCENT_DECAY * SCENT_DECAY);
-//		if (x > 0) arrScents[x-1][y].addFoodStrength(steps, m_lastFoodScent * SCENT_DECAY * SCENT_DECAY);
 	}
 
 	//determine if path strength is strong enough to follow

@@ -9,7 +9,7 @@ public class Scent {
 	private int m_y;
 	private double m_foodStrength;
 	private double m_colonyStrength;
-	private static final double SCENT_DECAY = 0.998;
+	private static final double SCENT_DECAY = 0.99;
 	private long m_lastSteps;
 
 	public Scent(int x, int y) {
@@ -46,17 +46,17 @@ public class Scent {
 
 	public void addColonyStrength(long steps, double strength) {
 		m_lastSteps = steps;
-		m_colonyStrength += strength;
+		m_colonyStrength = strength;
 		if ( m_colonyStrength > 100)  m_colonyStrength = 100;
 	}
 
 	public double getColonyStrength(long steps) {
-		return  m_colonyStrength * Math.pow(SCENT_DECAY, Math.max(steps - m_lastSteps, 0));
+		return m_colonyStrength * Math.pow(SCENT_DECAY, Math.max(steps - m_lastSteps, 0));
 	}
 
 	public void addFoodStrength(long steps, double strength) {
 		m_lastSteps = steps;
-		m_foodStrength += strength;
+		m_foodStrength = strength;
 		if (m_foodStrength > 100) m_foodStrength = 100;
 	}
 
