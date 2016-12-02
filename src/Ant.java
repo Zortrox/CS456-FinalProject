@@ -353,6 +353,7 @@ public class Ant {
 	}
 
 	//Bresenham's line algorithm
+	//http://tech-algorithm.com/articles/drawing-line-using-bresenham-algorithm/
 	//stores each food pixel along line in "nearbyFood" if not already in it
 	private void getFoodInLine(boolean[][] arrFood, ArrayList<Point> nearbyFood, int dist, double angle) {
 		//get line dimensions
