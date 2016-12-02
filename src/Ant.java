@@ -81,7 +81,7 @@ public class Ant {
 
 	public void draw(Graphics g) {
 		g.fillRect((int)m_currX, (int)m_currY, 2, 2);
-		g.drawLine((int)m_currX, (int)m_currY, (int)(m_currX + 4*Math.cos(m_angle)), (int)(m_currY + 4*Math.sin(m_angle)));
+		//g.drawLine((int)m_currX, (int)m_currY, (int)(m_currX + 4*Math.cos(m_angle)), (int)(m_currY + 4*Math.sin(m_angle)));
 	}
 
 	//move to position x, y
