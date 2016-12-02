@@ -3,9 +3,6 @@
  */
 
 import java.awt.*;
-import java.awt.geom.Line2D;
-import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
 import java.util.*;
 
 public class Ant {
@@ -18,50 +15,68 @@ public class Ant {
 	private Random rand = new Random();
 	private int m_worldWidth;
 	private int m_worldHeight;
-	private boolean m_followingScent;
 	private boolean m_followingFood;
+	private double m_lastFoodScent;
+	private double m_lastColonyScent;
+	private int m_pathLength;
 	private boolean m_hasFood;
 	private Colony m_col = null;
 
-	private class ScentComparator implements Comparator<Scent> {
+	private static final double SCENT_DECAY = 0.95;
+
+	private class ColonyScentComparator implements Comparator<Scent> {
 		@Override
 		public int compare(Scent s1, Scent s2) {
-			int comp = ((Double)s2.getStrength(0)).compareTo(s1.getStrength(0));
+			int comp = ((Double)s2.getColonyStrength(0)).compareTo(s1.getColonyStrength(0));
+			return comp;
+		}
+	}
+	private class FoodScentComparator implements Comparator<Scent> {
+		@Override
+		public int compare(Scent s1, Scent s2) {
+			int comp = ((Double)s2.getFoodStrength(0)).compareTo(s1.getFoodStrength(0));
+			return comp;
+		}
+	}
+	private class FoodDistComparator implements Comparator<Point> {
+		@Override
+		public int compare(Point p1, Point p2) {
+			int comp = ((Double)p1.distance(m_currX, m_currY)).compareTo(p2.distance(m_currX, m_currY));
 			return comp;
 		}
 	}
 
 	//create a new ant at position x, y
-	public Ant(int x, int y, int width, int height, Colony col) {
+	public Ant(int x, int y, Colony col) {
 		m_chromo = new Chromosome();
-		m_currX = x;
-		m_currY = y;
-		m_worldWidth = width;
-		m_worldHeight = height;
-		m_followingScent = false;
-		m_followingFood = false;
-		m_hasFood = false;
-		m_score = 0;
 		m_col = col;
+		m_worldWidth = m_col.getWorldWidth();
+		m_worldHeight = m_col.getWorldHeight();
 
-		m_angle = rand.nextDouble() * 2 * Math.PI - Math.PI;
+		reset();
 	}
 
 	//chromo - chromosome to start out with
 	//x, y starting position
-	public Ant(Chromosome chromo, int x, int y, int width, int height, Colony col) {
+	public Ant(Chromosome chromo, int x, int y, Colony col) {
 		m_chromo = new Chromosome(chromo.getGenes());
-		m_currX = x;
-		m_currY = y;
-		m_worldWidth = width;
-		m_worldHeight = height;
-		m_followingScent = false;
-		m_followingFood = false;
+		m_col = col;
+		m_worldWidth = m_col.getWorldWidth();
+		m_worldHeight = m_col.getWorldHeight();
+
+		reset();
+	}
+
+	public void reset() {
+		m_currX = m_col.getX();
+		m_currY = m_col.getY();
+		m_angle = rand.nextDouble() * 2 * Math.PI - Math.PI;
+		m_followingFood = true;
 		m_hasFood = false;
 		m_score = 0;
-		m_col = col;
-
-		m_angle = rand.nextDouble() * 2 * Math.PI - Math.PI;
+		m_pathLength = 0;
+		m_lastFoodScent = 0;
+		m_lastColonyScent = 0;
 	}
 
 	public void draw(Graphics g) {
@@ -80,170 +95,153 @@ public class Ant {
 		double dist;
 
 		int antennaeDist = 5;
-		double antennaeAngle = 0.2;
+		double antennaeAngle = Math.PI / 5.0f;
 
-		int prevX = (int)(m_currX + 0.5f);
-		int prevY = (int)(m_currY + 0.5f);
-		if (prevX >= 0 && prevX < m_worldWidth && prevY >= 0 && prevY < m_worldHeight) {
-			arrScents[prevX][prevY].addStrength(steps);
-			if (arrFood[prevX][prevY] && !m_hasFood && m_movePos != null) {
+		int pixelX = (int)(m_currX + 0.5f);
+		int pixelY = (int)(m_currY + 0.5f);
+		if (pixelX > m_worldWidth - 1) pixelX = m_worldWidth - 1;
+		if (pixelX < 0) pixelX = 0;
+		if (pixelY > m_worldHeight - 1) pixelY = m_worldHeight - 1;
+		if (pixelY < 0) pixelY = 0;
+
+		//update food scent trail
+		m_lastFoodScent *= SCENT_DECAY;
+		if (arrFood[pixelX][pixelY]) {
+			if (!m_hasFood) {
+				arrFood[pixelX][pixelY] = false;
+				m_score += 10;
 				m_hasFood = true;
 				m_followingFood = false;
-				m_followingScent = false;
-				arrFood[prevX][prevY] = false;
+
 				m_angle -= Math.PI;
 				if (m_angle < -Math.PI) m_angle += 2 * Math.PI;
-				m_movePos.setLocation((int) (prevX + Math.cos(m_angle)), (int) (prevY + Math.sin(m_angle)));
-				m_score += 10;
-				gotFood = true;
+				m_movePos = null;
 			}
+
+			arrScents[pixelX][pixelY].addFoodStrength(steps, 100);
+			m_lastFoodScent = 100;
 		}
 
-		if (m_movePos == null || (dist = m_movePos.distance(m_currX, m_currY)) < 2 && !m_followingScent && !m_followingFood) {
-			int randX = rand.nextInt(m_worldWidth);
-			int randY = rand.nextInt(m_worldHeight);
-			if (m_movePos == null) {
-				m_angle = Math.atan2(randY, randX);
+		//update colony scent trail
+		m_lastColonyScent *= SCENT_DECAY;
+		if (m_col.getPos().distance(pixelX, pixelY) < 5) {
+			if (!m_followingFood) {
+				gotFood = true;
+				m_score += 50;
+				m_hasFood = false;
+				m_followingFood = true;
+
+				m_angle -= Math.PI;
+				if (m_angle < -Math.PI) m_angle += 2 * Math.PI;
+				m_movePos = null;
 			}
-			m_movePos = new Point(randX, randY);
-			dist = m_movePos.distance(m_currX, m_currY);
-		} else if ((dist = m_movePos.distance(m_currX, m_currY)) < 2 && m_followingScent && !m_followingFood) {
+
+			arrScents[pixelX][pixelY].addColonyStrength(steps, 100);
+			m_lastColonyScent = 100;
+		}
+
+		if (m_movePos == null || (dist = m_movePos.distance(pixelX, pixelY)) < 2) {
+			boolean bNotMoved = true;
+			if (m_movePos != null) {
+				m_currX = m_movePos.x;
+				m_currY = m_movePos.y;
+			}
+
 			ArrayList<Scent> nearbyScents = new ArrayList<>();
 			getScentsInLine(arrScents, nearbyScents, antennaeDist, m_angle);
-			getScentsInLine(arrScents, nearbyScents, antennaeDist, m_angle - Math.PI / 4);
-			getScentsInLine(arrScents, nearbyScents, antennaeDist, m_angle + Math.PI / 4);
-			getScentsInLine(arrScents, nearbyScents, antennaeDist, m_angle - Math.PI / 2);
-			getScentsInLine(arrScents, nearbyScents, antennaeDist, m_angle + Math.PI / 2);
-			getScentsInLine(arrScents, nearbyScents, antennaeDist, m_angle - Math.PI / 1.333);
-			getScentsInLine(arrScents, nearbyScents, antennaeDist, m_angle + Math.PI / 1.333);
-			Collections.sort(nearbyScents, new ScentComparator());
-
-			if (nearbyScents.size() > 0 && nearbyScents.get(0).getStrength(steps) > followPathStrength()) {
-				m_movePos.setLocation(nearbyScents.get(0).getX(), nearbyScents.get(0).getY());
-			} else {
-				m_followingScent = false;
-			}
-		} else if ((dist = m_movePos.distance(m_currX, m_currY)) < 2 && m_followingFood) {
-			m_followingFood = false;
-
-			if (arrFood[prevX][prevY] && !m_hasFood) {
-				m_hasFood = true;
-				arrFood[prevX][prevY] = false;
-				m_angle -= Math.PI;
-				if (m_angle < -Math.PI) m_angle += 2 * Math.PI;
-				m_movePos.setLocation((int) (prevX + Math.cos(m_angle)), (int) (prevY + Math.sin(m_angle)));
-				m_score += 10;
-				gotFood = true;
-			}
-		}
-
-		//move towards position
-		double xDisp = (m_movePos.x - m_currX) / (dist>.1?dist:.1);
-		double yDisp = (m_movePos.y - m_currY) / (dist>.1?dist:.1);
-		m_currX = m_currX + xDisp;
-		m_currY = m_currY + yDisp;
-
-		double cross = Math.cos(m_angle) * yDisp - Math.sin(m_angle) * xDisp;
-		if (cross < 0) {
-			m_angle -= 0.1f;
-		} else if (cross > 0) {
-			m_angle += 0.1f;
-		}
-		m_angle = Math.atan2(yDisp, xDisp);
-		if (m_angle > Math.PI) m_angle -= 2 * Math.PI;
-
-		if (!m_followingFood) {
-			ArrayList<Scent> nearbyScents = new ArrayList<>();
-
-			//add scents in "cone" in front of ant
 			getScentsInLine(arrScents, nearbyScents, antennaeDist, m_angle - antennaeAngle);
-			getScentsInLine(arrScents, nearbyScents, antennaeDist, m_angle);
 			getScentsInLine(arrScents, nearbyScents, antennaeDist, m_angle + antennaeAngle);
+			getScentsInLine(arrScents, nearbyScents, antennaeDist, m_angle - 2.0 * antennaeAngle);
+			getScentsInLine(arrScents, nearbyScents, antennaeDist, m_angle + 2.0 * antennaeAngle);
+			getScentsInLine(arrScents, nearbyScents, antennaeDist, m_angle - 3.0 * antennaeAngle);
+			getScentsInLine(arrScents, nearbyScents, antennaeDist, m_angle + 3.0 * antennaeAngle);
 
-			//determine which scent to follow
 			if (nearbyScents.size() > 0) {
-				Collections.sort(nearbyScents, new ScentComparator());
-				if (nearbyScents.get(0).getStrength(steps) > followPathStrength()) {
-					m_movePos.setLocation(nearbyScents.get(0).getX(), nearbyScents.get(0).getY());
-					m_followingScent = true;
+				//create new object if no movement position specified yet
+				if (m_movePos == null) {
+					m_movePos = new Point(0, 0);
+				}
+
+				//move towards strongest food or colony scent
+				if (m_followingFood) {
+					//follow scent to food
+					Collections.sort(nearbyScents, new FoodScentComparator());
+					if (nearbyScents.get(0).getFoodStrength(steps) > followPathStrength()) {
+						m_movePos.setLocation(nearbyScents.get(0).getX(), nearbyScents.get(0).getY());
+						bNotMoved = false;
+						m_pathLength++;
+					}
+				} else {
+					//follow scent to nest
+					Collections.sort(nearbyScents, new ColonyScentComparator());
+					if (nearbyScents.get(0).getColonyStrength(steps) > followPathStrength()) {
+						m_movePos.setLocation(nearbyScents.get(0).getX(), nearbyScents.get(0).getY());
+						bNotMoved = false;
+						m_pathLength++;
+					}
 				}
 			}
 
 			if (!m_hasFood) {
+				//if food has entered field of smell, go to it
 				ArrayList<Point> nearbyFood = new ArrayList<>();
-				double[][] foodLocs = {
-						{m_currX, m_currY - 2},
-						{m_currX - 1, m_currY - 1},
-						{m_currX, m_currY - 1},
-						{m_currX + 1, m_currY - 1},
-						{m_currX - 2, m_currY},
-						{m_currX - 1, m_currY},
-						{m_currX + 1, m_currY},
-						{m_currX + 2, m_currY},
-						{m_currX - 1, m_currY + 1},
-						{m_currX, m_currY + 1},
-						{m_currX + 1, m_currY + 1},
-						{m_currX, m_currY + 2}};
-				for (int i = 0; i < foodLocs.length; i++) {
-					if (!m_followingFood && foodLocs[i][0] >= 0 && foodLocs[i][0] < m_worldWidth && foodLocs[i][1] >= 0 && foodLocs[i][1] < m_worldHeight) {
-						if (arrFood[(int) foodLocs[i][0]][(int) foodLocs[i][1]]) {
-							m_movePos.setLocation(foodLocs[i][0], foodLocs[i][1]);
-							m_followingFood = true;
-							m_followingScent = false;
-							m_score += 5;
-						}
-					}
-				}
+				getFoodInLine(arrFood, nearbyFood, antennaeDist, m_angle);
+				getFoodInLine(arrFood, nearbyFood, antennaeDist, m_angle - antennaeAngle);
+				getFoodInLine(arrFood, nearbyFood, antennaeDist, m_angle + antennaeAngle);
+				getFoodInLine(arrFood, nearbyFood, antennaeDist, m_angle - 2.0 * antennaeAngle);
+				getFoodInLine(arrFood, nearbyFood, antennaeDist, m_angle + 2.0 * antennaeAngle);
+				getFoodInLine(arrFood, nearbyFood, antennaeDist, m_angle - 3.0 * antennaeAngle);
+				getFoodInLine(arrFood, nearbyFood, antennaeDist, m_angle + 3.0 * antennaeAngle);
 
-				//if no food around && supply is lower than wanted
-				if (!m_followingFood && m_col.getSupply() < m_chromo.getSupplyMind()) {
-					m_movePos.setLocation(rand.nextInt(m_worldWidth), rand.nextInt(m_worldHeight));
+				if (nearbyFood.size() > 0) {
+					Collections.sort(nearbyFood, new FoodDistComparator());
+					m_movePos.setLocation(nearbyFood.get(0));
 				}
 			}
+
+			//if haven't moved, try somewhere random
+			if (bNotMoved) {
+				int randX = rand.nextInt(m_worldWidth);
+				int randY = rand.nextInt(m_worldHeight);
+				if (m_movePos == null) {
+					m_angle = Math.atan2(randY, randX);
+				}
+				m_movePos = new Point(randX, randY);
+
+				m_pathLength = 0;
+			}
+
+			dist = m_movePos.distance(pixelX, pixelY);
 		}
 
-		if (m_hasFood && Math.abs(m_currX - m_col.getX()) < 15 && Math.abs(m_currY - m_col.getY()) < 15) {
-			m_movePos.setLocation(m_col.getX(), m_col.getY());
-		} else if (m_hasFood && Math.abs(m_currX - m_col.getX()) < 1 && Math.abs(m_currY - m_col.getY()) < 1) {
-			m_hasFood = false;
-			m_score += 50;
+		//move towards position
+		double deltaX = (m_movePos.x - pixelX) / (dist>.1?dist:.1);
+		double deltaY = (m_movePos.y - pixelY) / (dist>.1?dist:.1);
+		m_currX = m_currX + deltaX;
+		m_currY = m_currY + deltaY;
+		m_angle = Math.atan2(deltaY, deltaX);
+		if (m_angle > Math.PI) m_angle -= 2 * Math.PI;
 
-			//find the best scent around a colony
-			ArrayList<Scent> colonyScents = new ArrayList<>();
-			double[][] scentLocs = {
-					{m_currX - 1, m_currY - 2},
-					{m_currX, m_currY - 2},
-					{m_currX + 1, m_currY - 2},
-					{m_currX - 2, m_currY - 1},
-					{m_currX - 2, m_currY},
-					{m_currX - 2, m_currY + 1},
-					{m_currX + 2, m_currY - 1},
-					{m_currX + 2, m_currY},
-					{m_currX + 2, m_currY + 1},
-					{m_currX - 1, m_currY + 2},
-					{m_currX, m_currY + 2},
-					{m_currX + 1, m_currY + 2}};
+		pixelX = (int)(m_currX + 0.5f);
+		pixelY = (int)(m_currY + 0.5f);
+		if (pixelX > m_worldWidth - 1) pixelX = m_worldWidth - 1;
+		if (pixelX < 0) pixelX = 0;
+		if (pixelY > m_worldHeight - 1) pixelY = m_worldHeight - 1;
+		if (pixelY < 0) pixelY = 0;
 
-			for (int i = 0; i < scentLocs.length; i++) {
-				if (scentLocs[i][0] >= 0 && scentLocs[i][0] < m_worldWidth && scentLocs[i][1] >= 0 && scentLocs[i][1] < m_worldHeight) {
-					if (arrScents[ (int)(scentLocs[i][0] + 0.5f) ][ (int)(scentLocs[i][1] + 0.5f) ].getStrength(steps) > followPathStrength() ) {
-						colonyScents.add(arrScents[ (int)(scentLocs[i][0] + 0.5f) ][ (int)(scentLocs[i][1] + 0.5f) ]);
-					}
-				}
-			}
-			if (colonyScents.size() > 0) {
-				Collections.sort(colonyScents, new ScentComparator());
-				int scentX = colonyScents.get(0).getX();
-				int scentY = colonyScents.get(0).getY();
-				if (Math.abs((Math.atan2(scentY, scentX) % (2 * 3.14159)) - (m_angle % (2 * 3.14159))) < 0.5f && colonyScents.size() > 1) {
-					m_movePos.setLocation(colonyScents.get(1).getX(), colonyScents.get(1).getY());
-				} else {
-					m_movePos.setLocation(scentX, scentY);
-				}
-				m_followingScent = true;
-			}
+		//update to use new scents
+		if (arrScents[pixelX][pixelY].getColonyStrength(steps + 1) > m_lastColonyScent) {
+			m_lastColonyScent = arrScents[pixelX][pixelY].getColonyStrength(steps + 1);
+		}
+		if (arrScents[pixelX][pixelY].getFoodStrength(steps + 1) > m_lastFoodScent) {
+			m_lastFoodScent = arrScents[pixelX][pixelY].getFoodStrength(steps + 1);
 		}
 
+		//update scent trails
+		addFoodScent(arrScents, pixelX, pixelY, steps);
+		addColonyScent(arrScents, pixelX, pixelY, steps);
+
+		//return if food was added to colony
 		return gotFood;
 	}
 
@@ -274,9 +272,7 @@ public class Ant {
 	}
 
 	//Bresenham's line algorithm
-	private ArrayList<Scent> getScentsInLine(Scent[][] arrScents, ArrayList<Scent> nearbyScents, int dist, double angle) {
-		ArrayList<Scent> lineScents = new ArrayList<>();
-
+	private void getScentsInLine(Scent[][] arrScents, ArrayList<Scent> nearbyScents, int dist, double angle) {
 		int x = (int)m_currX;
 		int y = (int)m_currY;
 		int w = (int)(dist * Math.cos(angle));
@@ -310,11 +306,73 @@ public class Ant {
 				y += dy2 ;
 			}
 		}
-
-		return lineScents;
 	}
 
+	private void getFoodInLine(boolean[][] arrFood, ArrayList<Point> nearbyFood, int dist, double angle) {
+		int x = (int)m_currX;
+		int y = (int)m_currY;
+		int w = (int)(dist * Math.cos(angle));
+		int h = (int)(dist * Math.sin(angle));
+		int dx1 = 0, dy1 = 0, dx2 = 0, dy2 = 0 ;
+		if (w < 0) dx1 = -1; else if (w > 0) dx1 = 1;
+		if (h < 0) dy1 = -1; else if (h > 0) dy1 = 1;
+		if (w < 0) dx2 = -1; else if (w > 0) dx2 = 1;
+		int longest = Math.abs(w) ;
+		int shortest = Math.abs(h) ;
+		if (longest <= shortest) {
+			longest = Math.abs(h) ;
+			shortest = Math.abs(w) ;
+			if (h < 0) dy2 = -1; else if (h > 0) dy2 = 1;
+			dx2 = 0 ;
+		}
+		int numerator = longest >> 1 ;
+		for (int i=0;i<=longest;i++) {
+			if (x >= 0 && x < m_worldWidth && y >= 0 && y < m_worldHeight) {
+				Point foodLoc = new Point(x, y);
+				if (arrFood[x][y] && !nearbyFood.contains(foodLoc)) {
+					nearbyFood.add(foodLoc);
+				}
+			}
+			numerator += shortest ;
+			if (!(numerator<longest)) {
+				numerator -= longest ;
+				x += dx1 ;
+				y += dy1 ;
+			} else {
+				x += dx2 ;
+				y += dy2 ;
+			}
+		}
+	}
+
+	private void addColonyScent(Scent[][] arrScents, int x, int y, long steps) {
+		arrScents[x][y].addColonyStrength(steps, m_lastColonyScent * SCENT_DECAY);
+
+//		if (y < m_worldHeight - 1) arrScents[x][y+1].addColonyStrength(steps, m_lastColonyScent * SCENT_DECAY * SCENT_DECAY);
+//		if (y > 0) arrScents[x][y-1].addColonyStrength(steps, m_lastColonyScent * SCENT_DECAY * SCENT_DECAY);
+//		if (x < m_worldWidth - 1) arrScents[x+1][y].addColonyStrength(steps, m_lastColonyScent * SCENT_DECAY * SCENT_DECAY);
+//		if (x > 0) arrScents[x-1][y].addColonyStrength(steps, m_lastColonyScent * SCENT_DECAY * SCENT_DECAY);
+	}
+
+	private void addFoodScent(Scent[][] arrScents, int x, int y, long steps) {
+		arrScents[x][y].addFoodStrength(steps, m_lastFoodScent * SCENT_DECAY);
+
+//		if (y < m_worldHeight - 1) arrScents[x][y+1].addFoodStrength(steps, m_lastFoodScent * SCENT_DECAY * SCENT_DECAY);
+//		if (y > 0) arrScents[x][y-1].addFoodStrength(steps, m_lastFoodScent * SCENT_DECAY * SCENT_DECAY);
+//		if (x < m_worldWidth - 1) arrScents[x+1][y].addFoodStrength(steps, m_lastFoodScent * SCENT_DECAY * SCENT_DECAY);
+//		if (x > 0) arrScents[x-1][y].addFoodStrength(steps, m_lastFoodScent * SCENT_DECAY * SCENT_DECAY);
+	}
+
+	//determine if path strength is strong enough to follow
 	private int followPathStrength() {
-		return (int) (m_chromo.getBravery() * (!m_hasFood?1:0) * Math.min(1, 1.0f * m_col.getSupply() / m_chromo.getSupplyMind()));
+		int strength = m_chromo.getBravery();
+		strength *= Math.min(1, 1.0f * m_col.getSupply() / m_chromo.getSupplyMind());
+
+		//don't follow the path if frustrated
+		if (m_pathLength > m_chromo.getFrustration()) {
+			strength = 100;
+		}
+
+		return strength;
 	}
 }

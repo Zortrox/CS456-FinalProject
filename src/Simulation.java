@@ -23,7 +23,7 @@ public class Simulation {
 	private boolean running = true;
 	private int gameWidth = 670;
 	private int gameHeight = 670;
-	private int stepLimit = 7200;
+	private int stepLimit = 50000;
 	private Colony col = new Colony(335, 335, gameWidth, gameHeight, 100, 0.25f, 0);
 	private int bestEval = -100000;
 	private int sleepSpeed = 0;

@@ -29,12 +29,12 @@ public class Chromosome {
 
 	//percent - between 0 and 1
 	public void mutate(double percent) {
-		if (rand.nextDouble() < percent) m_supplymind = rand.nextInt(2000) + 1;
+		if (rand.nextDouble() < percent) m_supplymind = rand.nextInt(Colony.MAX_SUPPLY) + 1;
 		if (rand.nextDouble() < percent) m_scentmind = rand.nextInt(101);
 		if (rand.nextDouble() < percent) m_sourcemind = rand.nextInt(100) + 1;
 		if (rand.nextDouble() < percent) m_bravery = rand.nextInt(101);
 		if (rand.nextDouble() < percent) m_stubborness = rand.nextInt(101);
-		if (rand.nextDouble() < percent) m_frustration = rand.nextInt(101);
+		if (rand.nextDouble() < percent) m_frustration = rand.nextInt(10000);
 	}
 
 	public void cross(Chromosome other) {

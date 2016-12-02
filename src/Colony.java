@@ -32,7 +32,7 @@ public class Colony {
 	private Point pos;
 	private int m_worldWidth;
 	private int m_worldHeight;
-	private static final int MAX_SUPPLY = 1000;
+	public static final int MAX_SUPPLY = 10000;
 	private int m_supply = MAX_SUPPLY;
 	private long m_totalSteps = 0;
 	private boolean[][] m_arrFood;
@@ -78,6 +78,15 @@ public class Colony {
 	public int getY() {
 		return pos.y;
 	}
+	public Point getPos() {
+		return pos;
+	}
+	public int getWorldWidth() {
+		return m_worldWidth;
+	}
+	public int getWorldHeight() {
+		return m_worldHeight;
+	}
 
 	public int getSupply() {
 		return m_supply;
@@ -104,12 +113,12 @@ public class Colony {
 			while(best.hasNextLine() && best.hasNextInt()){
 				int[] genes = {best.nextInt(), best.nextInt(), best.nextInt(), best.nextInt(), best.nextInt(), best.nextInt()};
 
-				m_arrAnts.add(new Ant(new Chromosome(genes), x, y, m_worldWidth, m_worldHeight, this));
+				m_arrAnts.add(new Ant(new Chromosome(genes), x, y, this));
 			}
 		} catch (FileNotFoundException e){
 			m_arrAnts = new ArrayList<>();
 			for (int i = 0; i < m_numAnts; i++) {
-				m_arrAnts.add(new Ant(x, y, m_worldWidth, m_worldHeight, this));
+				m_arrAnts.add(new Ant(x, y, this));
 			}
 		}
 
@@ -135,9 +144,14 @@ public class Colony {
 			if(remaining < amount){
 				amount = remaining;
 			}
-			
-			int xIndex = r.nextInt(m_worldWidth);
-			int yIndex = r.nextInt(m_worldHeight);			
+
+			//create food sources at least 150 pixels away
+			int xIndex;
+			int yIndex;
+			do {
+				xIndex = r.nextInt(m_worldWidth);
+				yIndex = r.nextInt(m_worldHeight);
+			} while (pos.distance(xIndex, yIndex) < 150);
 			
 			int dir = 0;
 			
@@ -248,21 +262,21 @@ public class Colony {
 		//cross each selected ant with the next one down
 		int numCross = numSelect - 1;
 		for (int i = 0; i < numCross; i++) {
-			Ant child = new Ant(m_arrAnts.get(i).getChromosome(), pos.x, pos.y, m_worldWidth, m_worldHeight, this);
+			Ant child = new Ant(m_arrAnts.get(i).getChromosome(), pos.x, pos.y, this);
 			child.cross(m_arrAnts.get(numSelect + 1));
 			m_arrAnts.set(numSelect + i, child);
+
+			//reset selected ants to default position and food-finding behavior
+			m_arrAnts.get(i).reset();
 		}
+		m_arrAnts.get(numCross).reset();
 
 		//mutate rest of ants based on selected ants
 		int numMutate = m_numAnts - numSelect - numCross;
 		for (int i = 0; i < numMutate; i++) {
-			Ant child = new Ant(m_arrAnts.get(i).getChromosome(), pos.x, pos.y, m_worldWidth, m_worldHeight, this);
+			Ant child = new Ant(m_arrAnts.get(i).getChromosome(), pos.x, pos.y, this);
 			child.mutate(m_mutatePercent);
 			m_arrAnts.set(numSelect + numCross + i, child);
-		}
-		
-		for(int i = 0; i < m_numAnts; i++){
-			m_arrAnts.get(i).setPosition(pos.x, pos.y);
 		}
 		
 		m_arrScents = new Scent[m_worldWidth][m_worldHeight];
