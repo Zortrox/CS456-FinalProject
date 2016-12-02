@@ -6,13 +6,15 @@ import java.util.Random;
 
 public class Chromosome {
 
-	private int m_supplymind;
-	private int m_scentmind;
-	private int m_sourcemind;
-	private int m_bravery;
-	private int m_stubborness;
-	private int m_frustration;
+	//"genes" that change the ant behavior
+	private int m_supplymind;	//how much supply the colony has
+	private int m_scentmind;	//not used
+	private int m_sourcemind;	//not used
+	private int m_bravery;		//whether to follow a trail or forge its own path
+	private int m_stubborness;	//not used
+	private int m_frustration;	//how long to follow a path
 
+	//max values for the genes
 	private static final int MAX_SUPPLY = Colony.MAX_SUPPLY;
 	private static final int MAX_SCENT = 101;
 	private static final int MAX_SOURCE = 100;
@@ -35,7 +37,7 @@ public class Chromosome {
 	}
 
 	//percent - between 0 and 1
-	//changes the genes by 0-5%
+	//mutates the genes by 0-5% based on max gene amount
 	public void mutate(double percent) {
 		if (rand.nextDouble() < percent) {
 			int change = rand.nextInt((int)(MAX_SUPPLY * 0.05)) + 1;
@@ -105,6 +107,7 @@ public class Chromosome {
 		}
 	}
 
+	//initializes the genes to random values up to the gene's max
 	public void randomize() {
 		m_supplymind = rand.nextInt(Colony.MAX_SUPPLY) + 1;
 		m_scentmind = rand.nextInt(MAX_SCENT);
@@ -114,6 +117,8 @@ public class Chromosome {
 		m_frustration = rand.nextInt(MAX_FRUSTRATE);
 	}
 
+	//cross one chromosome to another
+	//randomly chooses whether to accept the current gene or the new one (50/50)
 	public void cross(Chromosome other) {
 		int[] otherGenes = other.getGenes();
 
@@ -125,6 +130,7 @@ public class Chromosome {
 		if (rand.nextDouble() < 0.5) m_frustration = otherGenes[5];
 	}
 
+	//returns all genes in an array
 	public int[] getGenes() {
 		int[] gene = new int[6];
 
@@ -138,6 +144,7 @@ public class Chromosome {
 		return gene;
 	}
 
+	//return each gene individually
 	public int getSupplyMind() {
 		return m_supplymind;
 	}
